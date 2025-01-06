@@ -1,4 +1,5 @@
 import { AppApi } from "../shared/appApi";
+import { register as registerAngle } from "./wrappings/angle"; // first modified function
 import { register as registerPoint } from "./wrappings/point";
 import { register as registerCircle } from "./wrappings/circle";
 import { register as registerEllipse } from "./wrappings/ellipse";
@@ -35,7 +36,7 @@ declare var Sk: SkulptApi;
   // expects a different type, so fudge it.  Perhaps there's a better
   // way to do this?
   let mod = { __name__: new Sk.builtin.str("ggb") } as any;
-
+  registerAngle(mod, appApi); // first registered geogebra module
   registerPoint(mod, appApi);
   registerCircle(mod, appApi);
   registerEllipse(mod, appApi);
