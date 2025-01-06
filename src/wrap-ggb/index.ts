@@ -1,4 +1,5 @@
 import { AppApi } from "../shared/appApi";
+import { register as registerAngleBisector } from "./wrappings/angle-bisector";
 import { register as registerPoint } from "./wrappings/point";
 import { register as registerCircle } from "./wrappings/circle";
 import { register as registerEllipse } from "./wrappings/ellipse";
@@ -36,6 +37,7 @@ declare var Sk: SkulptApi;
   // way to do this?
   let mod = { __name__: new Sk.builtin.str("ggb") } as any;
 
+  registerAngleBisector(mod, appApi);
   registerPoint(mod, appApi);
   registerCircle(mod, appApi);
   registerEllipse(mod, appApi);
