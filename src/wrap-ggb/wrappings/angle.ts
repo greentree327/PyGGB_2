@@ -12,7 +12,7 @@ import { registerObjectType } from "../type-registry";
 
 declare var Sk: SkulptApi;
 
-interface SkGgbAngle extends SkGgbObject {
+interface SkGgbAngle extends SkGgbObject { // Describes the structure of an AreCollinear object once it has been instantiated.
     // Properties for different types of Angle calculations
     object1?: SkGgbObject; // First object (point, vector, line, etc.)
     object2?: SkGgbObject; // Second object (optional)
@@ -22,7 +22,7 @@ interface SkGgbAngle extends SkGgbObject {
 }
 // Constructor defines the method(s) to build an object in a class
 // Constructor spec for the SkGgbAngle
-type SkGgbAngleCtorSpec = 
+type SkGgbAngleCtorSpec = // Describes the structure of the constructor input (i.e., the spec object)
     | WrapExistingCtorSpec // First option: Wrap an existing angle
 
     | {
@@ -38,21 +38,25 @@ type SkGgbAngleCtorSpec =
     };
 
 // Registration function
-export const register = (mod: any, appApi: AppApi) => { // connects your code to Geogebra by receiving the module being registered and Geogebra application's API
+export const register = (mod: any, appApi: AppApi) => { // connects your code to Geogebra
+    // mod: a module object (= sys in python), used as a centralized container for types and functions
     const ggb = augmentedGgbApi(appApi.ggb); // augments the basic Geogebra API by adding extra functionality
 
     // class definition
     const cls = Sk.abstr.buildNativeClass("Angle", {
         constructor: function Angle(
             this: SkGgbAngle, // 'this' will be an angle object
-            spec: SkGgbAngleCtorSpec // specification for how to build the angle
+            spec: SkGgbAngleCtorSpec // contains information about how the object should be created or what it should represent.
         ) {
             // ############################################################# best to define the angle name base on the question text
-            const setLabelArgs = setGgbLabelFromArgs(ggb, this, "Angle"); // function takes in 3 params, (Geogebra API, angle object, type="angle"), and creates a unique label like "A", "B","C" etc
-        
+            const setLabelArgs = setGgbLabelFromArgs(ggb, this, "Angle"); 
+                // setLabelArgs: prepares the Angle object by linking it to specific Geogebra elements (points, lines, apex) through their labels
+                // function takes in 3 params, (Geogebra API, angle object, type="angle"), and creates a unique label like "A", "B","C" etc
+                
             switch (spec.kind){
                 case "three-points": {
-                    setLabelArgs([spec.point1.$ggbLabel, spec.apex.$ggbLabel, spec.point2.$ggbLabel]);
+                    setLabelArgs([spec.point1.$ggbLabel, spec.apex.$ggbLabel, spec.point2.$ggbLabel]); // setLabelArgs(["A", "B", "C"]); indicates that the geogebra object (angle) depends on these points
+                        // $ggbLabel holds the string label ("A", "B", "C") of the corresponding Geogebra object
                     this.object1 = spec.point1;
                     this.object2 = spec.apex;
                     this.object3 = spec.point2;
@@ -71,17 +75,17 @@ export const register = (mod: any, appApi: AppApi) => { // connects your code to
             }
         },
         slots: {
-            tp$new(args, kwargs) {
+            tp$new(args, kwargs) { // every time you call AreCollinear(A, B, C), you invoke tp$new (type new)
                 const badArgsError = new Sk.builtin.TypeError(
                     "Angle() arguments are invalid for the given input types."
                 );
 
-                const make = (spec: SkGgbAngleCtorSpec) =>
-                    withPropertiesFromNameValuePairs(new mod.Angle(spec), kwargs);
-
+                const make = (spec: SkGgbAngleCtorSpec) => // assume spec is already a fully constructed SkGgbAngle Object
+                    withPropertiesFromNameValuePairs(new mod.Angle(spec), kwargs); // new mod.Angle(spec) calls the constructor for the Angle class, and passes the spec object to it
+                    // mod.angle: refers to the angle class that has been registered in the module
                 // Detecting input types
-                if (args.length === 3 && ggb.everyElementIsGgbObjectOfType(args, "point")) {
-                    return make({
+                if (args.length === 3 && ggb.everyElementIsGgbObjectOfType(args, "point")) { // first it validates the argument ("A", "B", "C")
+                    return make({ // then it creates the spec object {kind: "three-points", point1: ...}, and calls the make() function
                         kind: "three-points",
                         point1: args[0],
                         apex: args[1],
@@ -98,22 +102,24 @@ export const register = (mod: any, appApi: AppApi) => { // connects your code to
                 throw badArgsError;
             },
         },
-        methods:{
+        // part of the Angle class definition created with Sk.abstr.buildNativeClass
+        methods:{ // define custom methods attached to the Angle 
             // Method to return the angle result
-            get_angle(this: SkGgbAngle) {
-                return this.result
-                    ? new Sk.builtin.float_(this.result)
-                    : Sk.builtin.none.none$;
+            get_angle(this: SkGgbAngle) { // "this" refers to the current angle being referenced to
+                return this.result // check if the result property of "this" angle exist
+                    ? new Sk.builtin.float_(this.result) // ? = If this.result has a value, return float
+                    : Sk.builtin.none.none$; // : = If this.result has no value, return none
             },
         },
-        getsets: {
+        // Defines how to retrieve the value of the property
+        getsets: { 
             is_visible: ggb.sharedGetSets.is_visible,
             color: ggb.sharedGetSets.color,
             color_floats: ggb.sharedGetSets.color_floats,
             _ggb_type: ggb.sharedGetSets._ggb_type,
         },
     });
-
-    mod.Angle = cls;
+    // register the Angle class to the mod object
+    mod.Angle = cls; 
     registerObjectType("angle", cls);
 };

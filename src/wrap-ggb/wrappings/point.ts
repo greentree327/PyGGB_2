@@ -193,6 +193,7 @@ export const register = (
     },
     getsets: {
       is_visible: ggb.sharedGetSets.is_visible,
+      with_label: ggb.sharedGetSets.label_visible,
       is_independent: ggb.sharedGetSets.is_independent,
       color: ggb.sharedGetSets.color,
       color_floats: ggb.sharedGetSets.color_floats,
