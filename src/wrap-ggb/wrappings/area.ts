@@ -13,6 +13,7 @@ import {
   SkulptApi,
 } from "../../shared/vendor-types/skulptapi";
 import { registerObjectType } from "../type-registry";
+import { METHODS } from "http";
 
 declare var Sk: SkulptApi;
 
@@ -49,21 +50,27 @@ export const register = (mod: any, appApi: AppApi) => {
         case "points-array": {
           this.ctorPointLabels = spec.points.map((p) => p.$ggbLabel);
           const ggbCmd = assembledCommand("Area", this.ctorPointLabels);
-          const lbls = ggb.evalCmd(ggbCmd).split(",");
+          const lbls = ggb.evalCmd(ggbCmd);
+          const areaValue = ggb.getValue(lbls);
+          ggb.deleteObject(lbls);
+          
           // TODO: Should have n.args + 1 labels here; check this.
-          this.$ggbLabel = lbls[0];
-          this.segments = lbls.slice(1).map(ggb.wrapExistingGgbObject);
-          break;
+          this.$ggbLabel = lbls.split(",")[0];
+          this.segments = lbls.split(",").slice(1).map(ggb.wrapExistingGgbObject);
+          return new Sk.builtin.float_(areaValue);
         }
         case "polygon": {
           const ggbCmd = assembledCommand("Area", [
             spec.polygon.$ggbLabel,
           ]);
-          const lbls = ggb.evalCmd(ggbCmd).split(",");
+          const lbls = ggb.evalCmd(ggbCmd);
+          const areaValue = ggb.getValue(lbls);
+          ggb.deleteObject(lbls);
+          
           // TODO: Should have n.args + 1 labels here; check this.
-          this.$ggbLabel = lbls[0];
-          this.segments = lbls.slice(1).map(ggb.wrapExistingGgbObject);
-          break;
+          this.$ggbLabel = lbls.split(",")[0];
+          this.segments = lbls.split(",").slice(1).map(ggb.wrapExistingGgbObject);
+          return new Sk.builtin.float_(areaValue);
         }
         default:
           throw new Sk.builtin.RuntimeError(
@@ -80,13 +87,11 @@ export const register = (mod: any, appApi: AppApi) => {
             " or (Conic)"
         );
 
-        const make = (spec: SkGgbAreaCtorSpec) =>
+        const make = (spec: SkGgbAreaCtorSpec) => 
           withPropertiesFromNameValuePairs(new mod.Area(spec), kwargs);
 
         switch (args.length) {
           case 1: {
-            console.log(args[0].tp$name == "Polygon")
-            console.log(ggb.isGgbObject(args[0]))
             if (Sk.builtin.checkIterable(args[0])) {
               const points = Sk.misceval.arrayFromIterable(args[0]);
               
