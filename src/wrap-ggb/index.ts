@@ -1,6 +1,7 @@
 import { AppApi } from "../shared/appApi";
 import { register as registerPoint } from "./wrappings/point";
 import { register as registerAngleBisector } from "./wrappings/angle-bisector";
+import { register as registerArc } from "./wrappings/arc";
 import { register as registerArea } from "./wrappings/area";
 import { register as registerCircle } from "./wrappings/circle";
 import { register as registerEllipse } from "./wrappings/ellipse";
@@ -40,6 +41,7 @@ declare var Sk: SkulptApi;
 
   registerAngleBisector(mod, appApi);
   registerArea(mod, appApi);
+  registerArc(mod, appApi);
   registerPoint(mod, appApi);
   registerCircle(mod, appApi);
   registerEllipse(mod, appApi);
