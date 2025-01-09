@@ -18,7 +18,7 @@ export const register = (mod: any, appApi: AppApi) => {
 
   const fun = new Sk.builtin.func((...args) => {   // ...args: allow the function to accept any number of parameters, which are gathered into an array called args
     const badArgsError = new Sk.builtin.TypeError( // predefine badArgsError for later use
-      "Intersect() arguments must be two GeoGebra objects, followed by python numbers or a Geogebra object"
+      "Intersect() arguments must be two GeoGebra objects, followed by python numbers or a Geogebra point object"
     );
 
     if (args.length < 2 || args.length > 4){
@@ -49,12 +49,17 @@ export const register = (mod: any, appApi: AppApi) => {
           object2.$ggbLabel,
           ggb.numberValueOrLabel(optionalArg1) // If optionalArg1 is Geogebra object, return its label; else, return the exponential form of the number
         ])
-      } else if (ggb.isGgbObject(optionalArg1), "point") {  // returns true if optionalArg1 is a point object in Geogebra
-        ggbCmd = assembledCommand("Intersect", [
-          object1.$ggbLabel,
-          object2.$ggbLabel,
-          ggb.numberValueOrLabel(optionalArg1)
-        ])
+      } else if (ggb.isGgbObject(optionalArg1)) {  // returns a declaration that optionalArg1 can be treated as SkGgbObject in the subsequent code
+          if (ggb.isGgbObject(optionalArg1), 'point') { // returns true if optionalArg1 is a point object in Geogebra
+            ggbCmd = assembledCommand("Intersect", [
+              object1.$ggbLabel,
+              object2.$ggbLabel,
+              optionalArg1.$ggbLabel,
+            ])
+          } else {
+            throw badArgsError;
+          }
+        
       } else {
         throw badArgsError;
       }
