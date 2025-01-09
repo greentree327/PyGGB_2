@@ -31,8 +31,6 @@ type SkGgbAreCollinearCtorSpec = {
 // Registration function
 export const register = (mod: any, appApi: AppApi) => {
     const ggb = augmentedGgbApi(appApi.ggb);
-    // Log the GeoGebra API object to inspect its methods
-    console.log(ggb);
 
     const cls = Sk.abstr.buildNativeClass("AreCollinear", {
         constructor: function AreCollinear(

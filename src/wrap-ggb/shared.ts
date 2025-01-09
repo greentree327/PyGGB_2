@@ -8,7 +8,7 @@ import {
 } from "../shared/vendor-types/skulptapi";
 import { GgbApi } from "../shared/vendor-types/ggbapi";
 import { colorIntsFromString, interpretColorOrFail } from "./color";
-import { wrapExistingGgbObject } from "./type-registry";
+import { wrapExistingGgbObject} from "./type-registry"; // added custom utilities
 import { OperationSlots, operationSlots } from "./operations";
 
 /** A Skulpt object which is also a wrapped GeoGebra object. */
@@ -59,9 +59,9 @@ export const strOfBool = (x: boolean): string => x.toString();
 export const isInstance = (cls: SkObject) => (obj: SkObject) =>
   Sk.builtin.isinstance(obj, cls).v;
 
-function _isGgbObject(obj: SkObject): obj is SkGgbObject {
-  return "$ggbLabel" in obj;
-}
+function _isGgbObject(obj: SkObject): obj is SkGgbObject { // the function takes in an SkObject, and the return type: obj is SkGgbObject; is a Typescript predicate, which means that the function doesn't just return True/False, it tells Typescript that if the function returns true, then obj can be treated as SkGgbObject in the subsequent code
+  return "$ggbLabel" in obj; // the "in" operator checks if the string "$ggbLabel" is a key/property in the object obj; If yes, return True
+} // 
 
 function _ggbType(ggbApi: GgbApi, objOrLabel: SkGgbObject | string): string {
   if (typeof objOrLabel === "string") {
@@ -80,7 +80,7 @@ function _ggbType(ggbApi: GgbApi, objOrLabel: SkGgbObject | string): string {
 export const isGgbObject = (
   ggbApi: GgbApi,
   obj: SkObject,
-  requiredType?: string
+  requiredType?: string // an optional parameter
 ): obj is SkGgbObject => {
   // Could collapse the following into one bool expression but it wouldn't
   // obviously be clearer.
@@ -113,7 +113,7 @@ const _everyElementIsGgbObjectOfType = (
 /** Test whether the Skulpt/PyGgb object `obj` is either a Skulpt/Python
  * number or a GeoGebra `numeric` object. */
 export const isPythonOrGgbNumber = (ggbApi: GgbApi, obj: SkObject) =>
-  Sk.builtin.checkNumber(obj) || isGgbObject(ggbApi, obj, "numeric");
+  Sk.builtin.checkNumber(obj) || isGgbObject(ggbApi, obj, "numeric"); // returns true in either cases, 
 
 /** Test whether the given array of strings is `[""]`, i.e., a
  * one-element list whose only element is the empty string. */
@@ -125,15 +125,15 @@ export const isSingletonOfEmpty = (xs: Array<string>) =>
  * inclusion in a GeoGebra command.  For a `numeric` object, return its
  * label.  For a Python number, return a literal string representation.
  * */
-export const numberValueOrLabel = (ggbApi: GgbApi, x: SkObject): string => {
-  if (isGgbObject(ggbApi, x, "numeric")) {
-    return x.$ggbLabel;
+export const numberValueOrLabel = (ggbApi: GgbApi, x: SkObject): string => { // takes in a value x
+  if (isGgbObject(ggbApi, x, "numeric")) { // if x is a Geogebra numeric object
+    return x.$ggbLabel; // return the label of x
   }
 
-  if (Sk.builtin.checkNumber(x)) {
-    const jsStr = x.v.toExponential();
+  if (Sk.builtin.checkNumber(x)) { // if x is a python number
+    const jsStr = x.v.toExponential(); // use JavaScript's toExponential() to convert the number into exponential function
     const [sig, exp] = jsStr.split("e");
-    return `(${sig}*10^(${exp}))`;
+    return `(${sig}*10^(${exp}))`; // reformats into Geogebra's syntax
   }
 
   // TODO: Can we tighten types to avoid this runtime check?
@@ -255,7 +255,7 @@ export function throwIfLabelNull(
 /** Assemble a full GeoGebra command from the base `command` and the
  * array of string `args`. */
 export const assembledCommand = (command: string, args: Array<string>) =>
-  `${command}(${args.join(",")})`;
+  `${command}(${args.join(",")})`; // joins the argument array with a comma
 
 export type GgbEvalCmdOptions = {
   allowNullLabel: boolean;
@@ -264,6 +264,28 @@ export type GgbEvalCmdOptions = {
 const kGgbEvalCmdOptionsDefaults: GgbEvalCmdOptions = {
   allowNullLabel: false,
 };
+////////////////////////////////////////////// modified evalCmdMultiple (custom utility function that uses ggbApi.evalCommandGetLabels/////////////////////////////////////////////////////////
+export const evalCmdMultiple = (ggbApi: GgbApi, cmd: string): string[] => {
+  // Execute the command and get the result
+  const result = ggbApi.evalCommandGetLabels(cmd);
+
+  if (typeof result === "string") {
+    // Handle concatenated labels (e.g., "E,F")
+    if (result.includes(",")) {
+      return result.split(",").map(label => label.trim());
+    }
+    // Single label, return it as an array
+    return [result];
+  } else if (Array.isArray(result)) {
+    // Multiple labels, return as-is
+    return result;
+  }
+
+  // No result, return an empty array
+  return [];
+};
+
+////////////////////////////////////////////// modified evalCmdMultiple /////////////////////////////////////////////////////////
 
 /** Set the `$ggbLabel` property of the given `obj` from the result of
  * executing the given `fullCommand`.  Curried for more concise use
@@ -511,6 +533,7 @@ type EveryElementIsGgbObjectOfType = (
   requiredType: string
 ) => objs is Array<SkGgbObject>;
 
+// Type definition that extends the functionality of the basic Geogebra GgbApi
 export type AugmentedGgbApi = {
   isGgbObject(obj: SkObject): obj is SkGgbObject;
   isGgbObjectOfType(obj: SkObject, requiredType: string): obj is SkGgbObject;
@@ -537,7 +560,8 @@ export type AugmentedGgbApi = {
   freeCopyMethodsSlice: MethodDescriptorsSlice;
   deleteMethodsSlice: MethodDescriptorsSlice;
   withPropertiesMethodsSlice: MethodDescriptorsSlice;
-  evalCmd(cmd: string): string;
+  evalCmd(cmd: string): string; // executes a Geogebra command and return the label of resulting object
+  evalCmdMultiple(cmd: string): string[]; // added custom utilities
   getValue(label: string): number;
   setValue(label: string, value: number): void;
   getXcoord(label: string): number;
@@ -570,8 +594,9 @@ export const augmentedGgbApi = (ggbApi: GgbApi): AugmentedGgbApi => {
       f(ggbApi, arg1, arg2, arg3);
   }
 
-  const evalCmd = (cmd: string): string => ggbApi.evalCommandGetLabels(cmd);
-  const getValue = (label: string): any => ggbApi.getValue(label);
+  const evalCmd = (cmd: string): string => ggbApi.evalCommandGetLabels(cmd); // Internally calls ggbApi.evalCommandGetLabels(cmd)
+  const evalCmdMultipleWrapper = (cmd: string): string[] => evalCmdMultiple(ggbApi, cmd); /////////////////////////////////////// calls the custom utility function
+  const getValue = (label: string): any => ggbApi.getValue(label); // Calls ggbApi.getValue(label).
   const setValue = (label: string, value: number): void =>
     ggbApi.setValue(label, value);
   const setCoords = (label: string, x: number, y: number): void =>
@@ -587,6 +612,7 @@ export const augmentedGgbApi = (ggbApi: GgbApi): AugmentedGgbApi => {
 
   // TODO: Review usage of isInstance() vs throwIfNotGgbObjectOfType().
 
+  // when we import this AugmentedGgbApi(from shared.ts) , we gain access to all the functions listed in the api object
   const api: AugmentedGgbApi = {
     isGgbObject: fixGgbArg_1(isGgbObject) as IsGgbObjectPredicate,
     isGgbObjectOfType: fixGgbArg_2(isGgbObject) as IsGgbObjectPredicate,
@@ -606,6 +632,7 @@ export const augmentedGgbApi = (ggbApi: GgbApi): AugmentedGgbApi => {
     deleteMethodsSlice: deleteMethodsSlice(ggbApi),
     withPropertiesMethodsSlice,
     evalCmd,
+    evalCmdMultiple: evalCmdMultipleWrapper, //
     getValue,
     setValue,
     getXcoord,
@@ -616,5 +643,5 @@ export const augmentedGgbApi = (ggbApi: GgbApi): AugmentedGgbApi => {
     sharedOpSlots: operationSlots(ggbApi),
   };
 
-  return api;
+  return api; // The resulting api object includes 1. Core Geogebra API methods 2. Custom utilities (e.g. wrapExistingGgbObject, everyElementIsGgbObjectOfType)
 };
