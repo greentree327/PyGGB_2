@@ -14,6 +14,7 @@ If the function return (Nan, Nan), it indicates either no intersecting point/ in
 Done:
 - Call by Area(Point, ..., Point)
 - Call by Area(Polygon)
+
 In progress
 - Aeccess to retuen value
 - Call by Area(Conic);no functions for Conic currently, it's optional.
