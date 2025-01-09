@@ -28,10 +28,12 @@ type SkGgbAreaCtorSpec =
       points: Array<SkGgbObject>;
     }
   | {
-      kind: "two-points-n-sides";
-      point1: SkGgbObject;
-      point2: SkGgbObject;
-      nSides: SkObject;
+      kind: "conic";
+      conic: SkGgbObject
+    }
+  | {
+      kind: "polygon";
+      polygon: SkGgbObject
     };
 
 export const register = (mod: any, appApi: AppApi) => {
@@ -53,11 +55,9 @@ export const register = (mod: any, appApi: AppApi) => {
           this.segments = lbls.slice(1).map(ggb.wrapExistingGgbObject);
           break;
         }
-        case "two-points-n-sides": {
+        case "polygon": {
           const ggbCmd = assembledCommand("Area", [
-            spec.point1.$ggbLabel,
-            spec.point2.$ggbLabel,
-            ggb.numberValueOrLabel(spec.nSides),
+            spec.polygon.$ggbLabel,
           ]);
           const lbls = ggb.evalCmd(ggbCmd).split(",");
           // TODO: Should have n.args + 1 labels here; check this.
@@ -76,7 +76,8 @@ export const register = (mod: any, appApi: AppApi) => {
         const badArgsError = new Sk.builtin.TypeError(
           "Area() arguments must be" +
             " (iterable_of_points)" +
-            " or (point, point, number_of_sides)"
+            " or (Polygon) " +
+            " or (Conic)"
         );
 
         const make = (spec: SkGgbAreaCtorSpec) =>
@@ -84,27 +85,22 @@ export const register = (mod: any, appApi: AppApi) => {
 
         switch (args.length) {
           case 1: {
+            console.log(args[0].tp$name == "Polygon")
+            console.log(ggb.isGgbObject(args[0]))
             if (Sk.builtin.checkIterable(args[0])) {
               const points = Sk.misceval.arrayFromIterable(args[0]);
-
+              
               if (ggb.everyElementIsGgbObject(points)) {
                 return make({ kind: "points-array", points });
               }
             }
-
-            throw badArgsError;
-          }
-          case 3: {
             if (
-              ggb.isGgbObjectOfType(args[0], "point") &&
-              ggb.isGgbObjectOfType(args[1], "point") &&
-              ggb.isPythonOrGgbNumber(args[2])
+              ggb.isGgbObject(args[0])
+              && args[0].tp$name == "Polygon"
             ) {
               return make({
-                kind: "two-points-n-sides",
-                point1: args[0],
-                point2: args[1],
-                nSides: args[2],
+                kind: "polygon",
+                polygon: args[0]
               });
             }
 
