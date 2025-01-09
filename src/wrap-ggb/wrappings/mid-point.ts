@@ -27,15 +27,19 @@ type SkGgbMidPointCtorSpec =
       kind: "segment";
       segment: SkGgbObject;
     }
-    | {
+  | {
+      kind: "interval";
+      interval: SkGgbObject;
+    }
+  | {
       kind: "conic";
       conic: SkGgbObject;
     }
-    | {
+  | {
       kind: "quadric";
       quadric: SkGgbObject;
     }
-    | {
+  | {
       kind: "two-points";
       point1: SkGgbObject;
       point2: SkGgbObject;
@@ -74,6 +78,14 @@ export const register = (
           
           break;
         }
+        case "interval": {
+          setLabelCmd(spec.interval.$ggbLabel);
+
+          const ggbCmd = `Midpoint(${spec.interval.$ggbLabel})`;
+          ggb.evalCmd(ggbCmd);
+          
+          break;
+        }
         case "quadric": {
           setLabelCmd(spec.quadric.$ggbLabel);
 
@@ -107,7 +119,7 @@ export const register = (
         const badArgsError = new Sk.builtin.TypeError(
           "MidPoint() arguments must be (segment) or " +
             "(conic) or (quadric) or" +
-            " (point, point)"
+            " (interval) or (point, point)"
         );
 
         const make = (spec: SkGgbMidPointCtorSpec) =>
@@ -119,6 +131,8 @@ export const register = (
               return make({ kind: "segment", segment: args[0] });
             } else if (ggb.isGgbObjectOfType(args[0], "conic")) {
               return make({ kind: "conic", conic: args[0] });
+            } else if (ggb.isGgbObjectOfType(args[0], "interval")) {
+              return make({ kind: "interval", interval: args[0] });
             } else if (ggb.isGgbObjectOfType(args[0], "quadric")) {
               return make({ kind: "quadric", quadric: args[0] });
             }
