@@ -60,7 +60,7 @@ export const register = (
           break;
         }
         case "coordinates": {
-          setLabelCmd(`(${spec.x}, ${spec.y})`);
+          setLabelCmd(`(${spec.x}, ${spec.y})`); // this is the function that provides the label for the point
           break;
         }
         case "arbitrary-on-object": {
@@ -144,10 +144,10 @@ export const register = (
             throw badArgsError;
         }
       },
-      tp$str(this: SkGgbPoint) {
+      tp$str(this: SkGgbPoint) { // defines the string representation in the user interface
         return new Sk.builtin.str(`(${this.$xCoord()}, ${this.$yCoord()})`);
       },
-      $r(this: SkGgbPoint) {
+      $r(this: SkGgbPoint) { // defines the string representation in developer interface
         return new Sk.builtin.str(
           `Point(${this.$xCoord()}, ${this.$yCoord()})`
         );

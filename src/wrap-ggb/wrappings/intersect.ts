@@ -114,7 +114,7 @@ export const register = (mod: any, appApi: AppApi) => {
             return new Sk.builtin.str(result.join(", ")) // ok
           } 
           else if (typeof filteredPoints === "string") {
-            return new Sk.builtin.str(label); // Return as a Python-compatible string
+            return new Sk.builtin.str(filteredPoints); // Return as a Python-compatible string
           } 
           else {
             throw new Error(`Unexpected return type: ${typeof filteredPoints}`);

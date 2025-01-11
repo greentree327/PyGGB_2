@@ -15,9 +15,10 @@ declare var Sk: SkulptApi;
 
 interface SkGgbLine extends SkGgbObject {}
 
-type SkGgbLineCtorSpec =
+type SkGgbLineCtorSpec = // defines a typescript union type that specifies the valid ways to construct a SkGgbLine object
   | WrapExistingCtorSpec
-  | { kind: "point-point"; points: Array<SkGgbObject> }
+  | { kind: "point-point"; points: Array<SkGgbObject> } 
+  | { kind: "label-point-point"; points: Array<SkGgbObject>; label:string } 
   | { kind: "coefficients"; coeffs: [SkObject, SkObject] };
 
 export const register = (mod: any, appApi: AppApi) => {
@@ -37,6 +38,13 @@ export const register = (mod: any, appApi: AppApi) => {
           setLabelArgs(spec.points.map((p) => p.$ggbLabel));
           return;
         }
+        case "label-point-point": {
+          const label = spec.label; // 
+          const pointsLabels = spec.points.map((p) => p.$ggbLabel);
+          const fullCommand = `${label} = Line[${pointsLabels.join(", ")}]`; // "AB = Line[A, B]"
+          setLabelCmd(fullCommand);  
+          return;
+        }
         case "coefficients": {
           const ggbCoeffs = spec.coeffs.map(ggb.numberValueOrLabel);
           setLabelCmd(`y=(${ggbCoeffs[0]})x + (${ggbCoeffs[1]})`);
@@ -53,14 +61,32 @@ export const register = (mod: any, appApi: AppApi) => {
         const badArgsError = new Sk.builtin.TypeError(
           "Line() arguments must be (point, point) or (slope, intercept)"
         );
-
-        const make = (spec: SkGgbLineCtorSpec) =>
-          withPropertiesFromNameValuePairs(new mod.Line(spec), kwargs);
+ 
+        const make = (spec: SkGgbLineCtorSpec) => // spec: parameter of the make function
+          withPropertiesFromNameValuePairs(new mod.Line(spec), kwargs); // apply the withPropertiesFromNameValuePairs function to the newly created Line function
 
         switch (args.length) {
+          case 3: { // Label + two points
+            if (Sk.builtin.checkString(args[0]))  // Check if first argument is a string (label)
+            {
+                const label = args[0].v; // Extract user-defined label
+                const points = args.slice(1);
+                if (ggb.everyElementIsGgbObjectOfType(points, "point")){
+                  return make({
+                    kind: "label-point-point",
+                    points: points,
+                    label: label, // Pass user-defined label to Line constructor
+                  });
+                }
+                throw badArgsError;
+                
+            }
+            throw badArgsError;
+        }
           case 2: {
             if (ggb.everyElementIsGgbObjectOfType(args, "point")) {
-              return make({ kind: "point-point", points: args });
+              // return new Sk.builtin.list(args);
+              return make({ kind: "point-point", points: args }); // args = [Point(1, 2), Point(3, 4)]
             }
 
             if (args.every(ggb.isPythonOrGgbNumber)) {

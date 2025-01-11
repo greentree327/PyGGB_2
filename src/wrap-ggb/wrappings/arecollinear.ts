@@ -37,10 +37,10 @@ export const register = (mod: any, appApi: AppApi) => {
             this: SkGgbAreCollinear,
             spec: SkGgbAreCollinearCtorSpec
         ) {
-            const setLabelArgs = setGgbLabelFromArgs(ggb, this, "AreCollinear");
+            // const setLabelArgs = setGgbLabelFromArgs(ggb, this, "AreCollinear");
 
             // Set the points and calculate the result
-            setLabelArgs([spec.point1.$ggbLabel, spec.point2.$ggbLabel, spec.point3.$ggbLabel]);
+            // setLabelArgs([spec.point1.$ggbLabel, spec.point2.$ggbLabel, spec.point3.$ggbLabel]);
 
             this.point1 = spec.point1;
             this.point2 = spec.point2;
@@ -64,15 +64,15 @@ export const register = (mod: any, appApi: AppApi) => {
                 this.result = true; // points are collinear
 
                 // Create Geogebra Object with the label CollinearResult_A_B_C, and assign it with the value of this.result
-                ggb.evalCmd(`${uniqueLabel} = ${this.result}`) 
+                ggb.evalCmd(`${uniqueLabel} = ${this.result}`);
 
                 // Prepare and return 'message' at web display
                 const message = `Points ${this.point1.$ggbLabel}, ${this.point2.$ggbLabel}, and ${this.point3.$ggbLabel} are collinear.`;
-                return new Sk.builtin.str(message) 
+                return new Sk.builtin.str(message);
                 
             } else {
                 this.result = false; // points are not collinear
-                ggb.evalCmd(`${uniqueLabel} = ${this.result}`) 
+                ggb.evalCmd(`${uniqueLabel} = ${this.result}`);
                 const message = `Points ${this.point1.$ggbLabel}, ${this.point2.$ggbLabel}, and ${this.point3.$ggbLabel} are not collinear.`;
                 return new Sk.builtin.str(message);
             }            

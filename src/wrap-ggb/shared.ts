@@ -264,7 +264,7 @@ export type GgbEvalCmdOptions = {
 const kGgbEvalCmdOptionsDefaults: GgbEvalCmdOptions = {
   allowNullLabel: false,
 };
-////////////////////////////////////////////// modified evalCmdMultiple (custom utility function that uses ggbApi.evalCommandGetLabels/////////////////////////////////////////////////////////
+////////////////////////////////////////////// modified evalCmdMultiple (custom utility function that uses ggbApi.evalCommandGetLabels /////////////////////////////////////////////////////////
 export const evalCmdMultiple = (ggbApi: GgbApi, cmd: string): string[] => {
   // Execute the command and get the result
   const result = ggbApi.evalCommandGetLabels(cmd);
@@ -290,29 +290,29 @@ export const evalCmdMultiple = (ggbApi: GgbApi, cmd: string): string[] => {
 /** Set the `$ggbLabel` property of the given `obj` from the result of
  * executing the given `fullCommand`.  Curried for more concise use
  * within a constructor. */
-export const setGgbLabelFromCmd =
-  (ggb: AugmentedGgbApi, obj: SkGgbObject) =>
-  (fullCommand: string, userOptions?: Partial<GgbEvalCmdOptions>) => {
-    const options: Required<GgbEvalCmdOptions> = Object.assign(
+export const setGgbLabelFromCmd = // =: assigns the function(defined in the subsequent lines) to setGgbLabelFromCmd
+  (ggb: AugmentedGgbApi, obj: SkGgbObject) => // this is the first function (higher ordered function)
+  (fullCommand: string, userOptions?: Partial<GgbEvalCmdOptions>) => { // this is the inner arrow function returned by the first function
+    const options: Required<GgbEvalCmdOptions> = Object.assign( // Declares a constant options with the type Required<GgbEvalCmdOptions>, the Requied<T> utility type in .ts makes all properties of T required
       Object.assign({}, kGgbEvalCmdOptionsDefaults),
       userOptions ?? {}
     );
-    const lbl = ggb.evalCmd(fullCommand);
+    const lbl = ggb.evalCmd(fullCommand); // Evaluate the Geogebra command
     if (lbl == null && !options.allowNullLabel) {
       throw new Sk.builtin.RuntimeError(
         `Ggb command "${fullCommand}" returned null`
       );
     }
-    obj.$ggbLabel = lbl;
+    obj.$ggbLabel = lbl; // Assign the Label to the Geogebra Object
   };
 
-/** Set the `$ggbLabel` property of the given `obj` from the result of
- * assembling a GeoGebra command from the given `command` and `args`.
- * Curried for more concise use within a constructor. */
+/** Assembles a command from provided arguments, and then 
+ * calls setGgbLabelFromCmd
+*/
 export const setGgbLabelFromArgs =
   (ggb: AugmentedGgbApi, obj: SkGgbObject, command: string) =>
   (args: Array<string>, userOptions?: Partial<GgbEvalCmdOptions>) => {
-    const fullCommand = assembledCommand(command, args);
+    const fullCommand = assembledCommand(command, args); // `${args[0]} = ${command}[${args.slice(1).join(", ")}]`
     setGgbLabelFromCmd(ggb, obj)(fullCommand, userOptions);
   };
 
