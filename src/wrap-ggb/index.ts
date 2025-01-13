@@ -7,6 +7,7 @@ import { register as registerPerpendicularBisector } from "./wrappings/perpendic
 import { register as registerTangent } from "./wrappings/tangent";
 import { register as registerCircumference } from "./wrappings/circumference";
 import { register as registerPerimeter } from "./wrappings/perimeter";
+import { register as registerRigidPolygon } from "./wrappings/rigid-polygon";
 
 import { AppApi } from "../shared/appApi";
 import { register as registerPoint } from "./wrappings/point";
@@ -51,10 +52,16 @@ declare var Sk: SkulptApi;
   registerArea(mod, appApi);
   registerArc(mod, appApi);
   registerMidPoint(mod, appApi);
+
   registerPerpendicularBisector(mod, appApi);
   registerTangent(mod, appApi);
   registerCircumference(mod, appApi)
   registerPerimeter(mod, appApi)
+  registerRigidPolygon(mod, appApi)
+
+
+
+
 
   registerPoint(mod, appApi);
   registerCircle(mod, appApi);
