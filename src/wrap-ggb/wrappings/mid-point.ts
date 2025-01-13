@@ -180,5 +180,5 @@ export const register = (
   });
 
   mod.MidPoint = cls;
-  registerObjectType("midpoint", cls);
+  registerObjectType("mid-point", cls);
 };

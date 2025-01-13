@@ -129,5 +129,5 @@ export const register = (mod: any, appApi: AppApi) => {
   });
 
   mod.AngleBisector = cls;
-  registerObjectType("anglebisector", cls);
+  registerObjectType("angle-bisector", cls);
 };

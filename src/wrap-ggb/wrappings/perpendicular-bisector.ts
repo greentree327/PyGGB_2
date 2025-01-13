@@ -154,5 +154,5 @@ export const register = (mod: any, appApi: AppApi) => {
   });
 
   mod.PerpendicularBisector = cls;
-  registerObjectType("perpendicularbisector", cls);
+  registerObjectType("perpendicular-bisector", cls);
 };
