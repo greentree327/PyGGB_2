@@ -142,5 +142,5 @@ export const register = (mod: any, appApi: AppApi) => {
   });
 
   mod.Arc = cls;
-  registerObjectType("Arc", cls);
+  registerObjectType("arc", cls);
 };

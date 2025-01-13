@@ -128,5 +128,5 @@ export const register = (mod: any, appApi: AppApi) => {
   });
 
   mod.Area = cls;
-  registerObjectType("Area", cls);
+  registerObjectType("area", cls);
 };
