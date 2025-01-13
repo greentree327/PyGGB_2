@@ -1,8 +1,12 @@
+// Add these
+import { register as registerAngleBisector } from "./wrappings/angle-bisector";
+import { register as registerArea } from "./wrappings/area";
+import { register as registerArc } from "./wrappings/arc";
+import { register as registerMidPoint } from "./wrappings/mid-point";
+import { register as registerPerpendicularBisector } from "./wrappings/perpendicular-bisector";
+
 import { AppApi } from "../shared/appApi";
 import { register as registerPoint } from "./wrappings/point";
-import { register as registerAngleBisector } from "./wrappings/angle-bisector";
-import { register as registerArc } from "./wrappings/arc";
-import { register as registerArea } from "./wrappings/area";
 import { register as registerCircle } from "./wrappings/circle";
 import { register as registerEllipse } from "./wrappings/ellipse";
 import { register as registerLine } from "./wrappings/line";
@@ -10,7 +14,6 @@ import { register as registerNumber } from "./wrappings/number";
 import { register as registerBoolean } from "./wrappings/boolean";
 import { register as registerVector } from "./wrappings/vector";
 import { register as registerSegment } from "./wrappings/segment";
-import { register as registerMidPoint } from "./wrappings/mid-point";
 import { register as registerParabola } from "./wrappings/parabola";
 import { register as registerPolygon } from "./wrappings/polygon";
 import { register as registerSlider } from "./wrappings/slider";
@@ -40,9 +43,13 @@ declare var Sk: SkulptApi;
   // way to do this?
   let mod = { __name__: new Sk.builtin.str("ggb") } as any;
 
+  // Add these
   registerAngleBisector(mod, appApi);
   registerArea(mod, appApi);
   registerArc(mod, appApi);
+  registerMidPoint(mod, appApi);
+  registerPerpendicularBisector(mod, appApi);
+
   registerPoint(mod, appApi);
   registerCircle(mod, appApi);
   registerEllipse(mod, appApi);
@@ -50,7 +57,6 @@ declare var Sk: SkulptApi;
   registerNumber(mod, appApi);
   registerBoolean(mod, appApi);
   registerVector(mod, appApi);
-  registerMidPoint(mod, appApi);
   registerSegment(mod, appApi);
   registerParabola(mod, appApi);
   registerPolygon(mod, appApi);
