@@ -72,10 +72,8 @@ export const register = (mod: any, appApi: AppApi) => {
     slots: {
       tp$new(args, kwargs) {
         const badArgsError = new Sk.builtin.TypeError(
-          "Circumference() arguments must be" +
-            " (iterable_of_points)" +
-            " or (Polygon) " +
-            " or (Conic)"
+          "Circumference() arguments must be (Circle) " +
+            "or (Conic)"
         );
 
         const make = (spec: SkGgbCircumferenceCtorSpec) => 
