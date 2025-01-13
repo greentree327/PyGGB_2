@@ -86,10 +86,9 @@ export const register = (mod: any, appApi: AppApi) => {
     slots: {
       tp$new(args, kwargs) {
         const badArgsError = new Sk.builtin.TypeError(
-          "RigidPolygon() arguments must be" +
-            " (iterable_of_points)" +
-            " or (Polygon) " +
-            " or (Conic)"
+          "RigidPolygon() arguments must be (Polygon)" +
+            " or (Polygon, Offset x, Offset y)" +
+            " or (Point, ..., Point)"
         );
 
         const make = (spec: SkGgbRigidPolygonCtorSpec) => 
