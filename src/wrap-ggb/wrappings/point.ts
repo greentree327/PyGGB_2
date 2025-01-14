@@ -33,6 +33,12 @@ type SkGgbPointCtorSpec =
       y: string;
     }
   | {
+    kind: "label-coordinates";
+    label: string;
+    x: string;
+    y: string;
+  }
+  | {
       kind: "arbitrary-on-object";
       obj: string;
     }
@@ -61,6 +67,11 @@ export const register = (
         }
         case "coordinates": {
           setLabelCmd(`(${spec.x}, ${spec.y})`); // this is the function that provides the label for the point
+          break;
+        }
+        case "label-coordinates": {
+          const label = spec.label;
+          setLabelCmd(`${label} = (${spec.x}, ${spec.y})`);
           break;
         }
         case "arbitrary-on-object": {
@@ -138,6 +149,15 @@ export const register = (
               return make({ kind: "object-parameter", p, t });
             }
 
+            throw badArgsError;
+          }
+          case 3: { // Label + x and y coordinates
+            if (Sk.builtin.checkString(args[0]) && args.slice(1).every(ggb.isPythonOrGgbNumber)) {
+              const label = args[0].v;
+              const x = ggb.numberValueOrLabel(args[1]);
+              const y = ggb.numberValueOrLabel(args[2]);
+              return make({ kind: "label-coordinates", label, x, y });
+            }
             throw badArgsError;
           }
           default:
