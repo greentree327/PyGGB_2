@@ -75,7 +75,7 @@ export const register = (mod: any, appApi: AppApi) => { // connects your code to
             }
         },
         slots: {
-            tp$new(args, kwargs) { // every time you call AreCollinear(A, B, C), you invoke tp$new (type new)
+            tp$new(args, kwargs) { // every time you call Angle(A,B,C, is_visible=True), you invoke tp$new (type new), with args : [A,B,C], and kwargs : is_visible = True
                 const badArgsError = new Sk.builtin.TypeError(
                     "Angle() arguments are invalid for the given input types."
                 );
