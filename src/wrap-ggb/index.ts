@@ -1,3 +1,14 @@
+// Add these
+import { register as registerAngleBisector } from "./wrappings/angle-bisector";
+import { register as registerArea } from "./wrappings/area";
+import { register as registerArc } from "./wrappings/arc";
+import { register as registerMidPoint } from "./wrappings/mid-point";
+import { register as registerPerpendicularBisector } from "./wrappings/perpendicular-bisector";
+import { register as registerTangent } from "./wrappings/tangent";
+import { register as registerCircumference } from "./wrappings/circumference";
+import { register as registerPerimeter } from "./wrappings/perimeter";
+import { register as registerRigidPolygon } from "./wrappings/rigid-polygon";
+
 import { AppApi } from "../shared/appApi";
 import { register as registerAngle } from "./wrappings/angle"; // first modified function
 import { register as registerAreCollinear } from "./wrappings/arecollinear";// AreCollinear
@@ -39,6 +50,23 @@ declare var Sk: SkulptApi;
   // expects a different type, so fudge it.  Perhaps there's a better
   // way to do this?
   let mod = { __name__: new Sk.builtin.str("ggb") } as any;
+
+  // Add these
+  registerAngleBisector(mod, appApi);
+  registerArea(mod, appApi);
+  registerArc(mod, appApi);
+  registerMidPoint(mod, appApi);
+
+  registerPerpendicularBisector(mod, appApi);
+  registerTangent(mod, appApi);
+  registerCircumference(mod, appApi)
+  registerPerimeter(mod, appApi)
+  registerRigidPolygon(mod, appApi)
+
+
+
+
+
   registerAngle(mod, appApi); // first registered geogebra module
   registerAreCollinear(mod, appApi); //
   registerAreConcurrent(mod, appApi); //

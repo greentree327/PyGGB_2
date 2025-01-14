@@ -12,35 +12,33 @@ import { registerObjectType } from "../type-registry";
 
 declare var Sk: SkulptApi;
 
-interface SkGgbAngleBisector extends SkGgbObject {
-  pointOrLine1?: SkGgbObject;
-  pointOrLine2?: SkGgbObject;
-  point3?: SkGgbObject;
+interface SkGgbTangent extends SkGgbObject {
+  input1: SkGgbObject;
+  input2: SkGgbObject;
 }
 
-type SkGgbAngleBisectorCtorSpec =
+type SkGgbTangentCtorSpec =
   | WrapExistingCtorSpec
   | {
-      kind: "three-points";
-      pointOrLine1: SkGgbObject;
-      pointOrLine2: SkGgbObject;
-      point3: SkGgbObject;
+      kind: "point-curve";
+      point: SkGgbObject;
+      curve: SkGgbObject;
     }
   |  {
-      kind: "two-lines";
-      pointOrLine1: SkGgbObject;
-      pointOrLine2: SkGgbObject;
+      kind: "two-circles";
+      circle1: SkGgbObject;
+      circle2: SkGgbObject;
   };
 
 export const register = (mod: any, appApi: AppApi) => {
   const ggb = augmentedGgbApi(appApi.ggb);
 
-  const cls = Sk.abstr.buildNativeClass("AngleBisector", {
-    constructor: function AngleBisector(
-      this: SkGgbAngleBisector,
-      spec: SkGgbAngleBisectorCtorSpec
+  const cls = Sk.abstr.buildNativeClass("Tangent", {
+    constructor: function Tangent(
+      this: SkGgbTangent,
+      spec: SkGgbTangentCtorSpec
     ) {
-      const setLabelArgs = setGgbLabelFromArgs(ggb, this, "AngleBisector");
+      const setLabelArgs = setGgbLabelFromArgs(ggb, this, "Tangent");
 
       switch (spec.kind) {
         case "wrap-existing": {
@@ -52,53 +50,53 @@ export const register = (mod: any, appApi: AppApi) => {
           // Can get from GGB with Point(SEGMENT, 0) and Point(SEGMENT, 1).
           break;
         }
-        case "three-points": {
-          setLabelArgs([spec.pointOrLine1.$ggbLabel, spec.pointOrLine2.$ggbLabel, spec.point3.$ggbLabel]);
-          this.pointOrLine1 = spec.pointOrLine1;
-          this.pointOrLine2 = spec.pointOrLine2;
-          this.point3 = spec.point3;
+        case "point-curve": {
+          setLabelArgs([spec.point.$ggbLabel, spec.curve.$ggbLabel]);
+          this.input1 = spec.point;
+          this.input2 = spec.curve;
           break;
         }
-        case "two-lines": {
-          setLabelArgs([spec.pointOrLine1.$ggbLabel, spec.pointOrLine2.$ggbLabel]);
-          this.pointOrLine1 = spec.pointOrLine1;
-          this.pointOrLine2 = spec.pointOrLine2;
+        case "two-circles": {
+          setLabelArgs([spec.circle1.$ggbLabel, spec.circle2.$ggbLabel]);
+          this.input1 = spec.circle1;
+          this.input2 = spec.circle2;
           break;
         }
         default:
           throw new Sk.builtin.TypeError(
-            `bad AngleBisector spec kind "${(spec as any).kind}"`
+            `bad Tangent spec kind "${(spec as any).kind}"`
           );
       }
     },
     slots: {
       tp$new(args, kwargs) {
         const badArgsError = new Sk.builtin.TypeError(
-          "AngleBisector() arguments must be (point, point, point) or (line, line)"
+          "Tangent() arguments must be (point, curve) or (circle, circle)"
         );
 
-        const make = (spec: SkGgbAngleBisectorCtorSpec) =>
-          withPropertiesFromNameValuePairs(new mod.AngleBisector(spec), kwargs);
+        const make = (spec: SkGgbTangentCtorSpec) =>
+          withPropertiesFromNameValuePairs(new mod.Tangent(spec), kwargs);
 
         switch (args.length) {
           case 2: {
-            if (ggb.everyElementIsGgbObjectOfType(args, "line")) {
+            if (ggb.isGgbObjectOfType(args[0], "point") &&
+                (
+                  ggb.isGgbObjectOfType(args[1], "parabola") ||
+                  ggb.isGgbObjectOfType(args[1], "circle") 
+                )
+              ) {
               return make({
-                kind: "two-lines",
-                pointOrLine1: args[0],
-                pointOrLine2: args[1],
+                kind: "point-curve",
+                point: args[0],
+                curve: args[1],
               });
             }
 
-            throw badArgsError;
-          }
-          case 3: {
-            if (ggb.everyElementIsGgbObjectOfType(args, "point")) {
+            if (ggb.everyElementIsGgbObjectOfType(args, "circle")) {
               return make({
-                kind: "three-points",
-                pointOrLine1: args[0],
-                pointOrLine2: args[1],
-                point3: args[2]
+                kind: "two-circles",
+                circle1: args[0],
+                circle2: args[1]
               });
             }
 
@@ -116,7 +114,7 @@ export const register = (mod: any, appApi: AppApi) => {
       // "length" is reserved word for Skulpt, so the property must be
       // set up with this mangled name:
       length_$rw$: {
-        $get(this: SkGgbAngleBisector) {
+        $get(this: SkGgbTangent) {
           return new Sk.builtin.float_(ggb.getValue(this.$ggbLabel));
         },
       },
@@ -128,6 +126,6 @@ export const register = (mod: any, appApi: AppApi) => {
     },
   });
 
-  mod.AngleBisector = cls;
-  registerObjectType("angle-bisector", cls);
+  mod.Tangent = cls;
+  registerObjectType("tangent", cls);
 };
