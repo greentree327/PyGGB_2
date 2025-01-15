@@ -29,8 +29,16 @@ Done:
 - Return value of area
 - Call by PerpendicularBisector(Segment), PerpendicularBisector(Point, Point), and PerpendicularBisector(Point, Point, Direction) and all tested
 - Call by Tangent(Point, Parabola/Circle) and Tangent(Circle, Circle) and all tested
-- Call by Circumference(Circle/Conic) and registerPerimeter(Circle/Polygon/Conic)
+- Call by Circumference(Circle/Conic) and Perimeter(Circle/Polygon/Conic)
 - Call by RigidPolygon(Polygon), RigidPolygon(Polygon, Offset x, Offset y), and RigidPolygon(Point, ..., Point) and all tested
 
 Note:
 - All applications involving Conic are not tested.
+
+## Added Functions for Centroid and Incircle - 15/01/2025 - Kelvin
+Done:
+- Call by Centroid(Polygon) and tested
+- Call by Incircle(Point, Point, Point) tested
+
+Note:
+- Made a temporary change in angle which return value of degree of the angle. However, it makes angle invisible.
