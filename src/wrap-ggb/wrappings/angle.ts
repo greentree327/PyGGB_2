@@ -5,6 +5,7 @@ import {
     WrapExistingCtorSpec, // Spec to indicate that we should construct a new Skulpt/Python wrapper for an existing GeoGebra object.
     SkGgbObject, // A Skulpt object which is also a wrapped GeoGebra object.
     setGgbLabelFromArgs, //Set the $ggbLabel property of the given obj from the result of assembling a GeoGebra command from the given command and args. Curried for more concise use within a constructor.
+    assembledCommand,
 } from "../shared";
 import { SkObject, SkulptApi } from "../../shared/vendor-types/skulptapi";
 
@@ -52,12 +53,23 @@ export const register = (mod: any, appApi: AppApi) => { // connects your code to
         
             switch (spec.kind){
                 case "three-points": {
-                    setLabelArgs([spec.point1.$ggbLabel, spec.apex.$ggbLabel, spec.point2.$ggbLabel]);
-                    this.object1 = spec.point1;
-                    this.object2 = spec.apex;
-                    this.object3 = spec.point2;
-                    this.unit = "degrees"; // Default to degree for DSE math
-                    break;
+                    // setLabelArgs([spec.point1.$ggbLabel, spec.apex.$ggbLabel, spec.point2.$ggbLabel]);
+                    // this.object1 = spec.point1;
+                    // this.object2 = spec.apex;
+                    // this.object3 = spec.point2;
+                    // this.unit = "degrees"; // Default to degree for DSE math
+
+                    const ggbCmd = assembledCommand("Angle", [
+                        spec.point1.$ggbLabel,
+                        spec.apex.$ggbLabel,
+                        spec.point2.$ggbLabel,
+                      ]);
+                    const lbls = ggb.evalCmd(ggbCmd);
+                    const angle = ggb.getValue(lbls);
+                    ggb.deleteObject(lbls);
+                    
+                    return new Sk.builtin.float_(angle * 180 / Math.PI);
+                    // break
                 }
                 case 'two-lines': {
                     setLabelArgs([spec.object1.$ggbLabel, spec.object2.$ggbLabel]);
