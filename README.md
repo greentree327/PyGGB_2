@@ -11,7 +11,7 @@ A webapp to allow people to interact with GeoGebra via Python.
 If the function return (Nan, Nan), it indicates either no intersecting point/ infinite intersecting points
 3. added AreConcurrent function, also modified line.ts function to accept user-defined input(see below)
 4. ![modified line.ts function](https://github.com/user-attachments/assets/23e86299-e8f9-463e-a42d-333c200f9f16)
-   
+5. AreConcyclic, AreCongruent done (17/1)
 ## Added Functions for Area, Arc, and Mid Points - 10/01/2025 - Kelvin
 Done:
 - Call by Area(Point, ..., Point) and Area(Polygon)
