@@ -51,8 +51,13 @@ export const register = (
               ]);
               const lbls = ggb.evalCmd(ggbCmd);
               this.$ggbLabel = lbls.split(",")[0];
+              // Retrieve the x- and y-coordinates of the centroid
+              const xCoord = ggb.getXcoord(this.$ggbLabel);
+              const yCoord = ggb.getYcoord(this.$ggbLabel);
 
-              break
+              // Return the coordinates as a formatted string
+              return new Sk.builtin.str(`(${xCoord}, ${yCoord})`);
+
         }
         default:
           throw new Sk.builtin.TypeError(

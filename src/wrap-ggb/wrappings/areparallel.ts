@@ -60,7 +60,7 @@ export const register = (mod: any, appApi: AppApi) => {
         slots: {
             tp$new(args, kwargs) {
                 const badArgsError = new Sk.builtin.TypeError(
-                    "AreParallel() requires exactly 2 lines or segments."
+                    "AreParallel() requires exactly 2 objects, each either a line or a segment."
                 );
 
                 const make = (spec: SkGgbAreParallelCtorSpec) =>
