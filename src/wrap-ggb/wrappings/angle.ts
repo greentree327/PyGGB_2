@@ -117,6 +117,9 @@ export const register = (mod: any, appApi: AppApi) => { // connects your code to
             color: ggb.sharedGetSets.color,
             color_floats: ggb.sharedGetSets.color_floats,
             _ggb_type: ggb.sharedGetSets._ggb_type,
+            opacity: ggb.sharedGetSets.opacity,
+            label_style: ggb.sharedGetSets.label_style,
+            caption: ggb.sharedGetSets.caption
         },
     });
     // register the Angle class to the mod object

@@ -560,6 +560,7 @@ export type AugmentedGgbApi = {
   freeCopyMethodsSlice: MethodDescriptorsSlice;
   deleteMethodsSlice: MethodDescriptorsSlice;
   withPropertiesMethodsSlice: MethodDescriptorsSlice;
+  // setSize(width: number, height: number): void; // Add setSize definition
   evalCmd(cmd: string): string; // executes a Geogebra command and return the label of resulting object
   evalCmdMultiple(cmd: string): string[]; // added custom utilities
   getValue(label: string): number;
@@ -593,7 +594,7 @@ export const augmentedGgbApi = (ggbApi: GgbApi): AugmentedGgbApi => {
     return (arg1: Arg1T, arg2: Arg2T, arg3: Arg3T) =>
       f(ggbApi, arg1, arg2, arg3);
   }
-
+  // const setSize = (width: number, height: number): void => ggbApi.setSize(width, height); //
   const evalCmd = (cmd: string): string => ggbApi.evalCommandGetLabels(cmd); // Internally calls ggbApi.evalCommandGetLabels(cmd)
   const evalCmdMultipleWrapper = (cmd: string): string[] => evalCmdMultiple(ggbApi, cmd); /////////////////////////////////////// calls the custom utility function
   const getValue = (label: string): any => ggbApi.getValue(label); // Calls ggbApi.getValue(label).
@@ -631,6 +632,7 @@ export const augmentedGgbApi = (ggbApi: GgbApi): AugmentedGgbApi => {
     freeCopyMethodsSlice: freeCopyMethodsSlice(ggbApi),
     deleteMethodsSlice: deleteMethodsSlice(ggbApi),
     withPropertiesMethodsSlice,
+    // setSize,//
     evalCmd,
     evalCmdMultiple: evalCmdMultipleWrapper, //
     getValue,

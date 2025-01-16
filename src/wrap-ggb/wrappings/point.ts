@@ -43,6 +43,11 @@ type SkGgbPointCtorSpec =
       obj: string;
     }
   | {
+    kind: "label-arbitrary-on-object"; // NEW case
+    label: string; // User-defined label
+    obj: string;   // Object on which the point is located
+  }
+  | {
       kind: "object-parameter";
       p: string;
       t: SkObject;
@@ -80,6 +85,18 @@ export const register = (
             this.$ggbLabel,
             "Point(object): could not find arbitrary point" +
               ` along "${ggb.ggbType(spec.obj)}" object`
+          );
+          break;
+        }
+        case "label-arbitrary-on-object": { // New case
+          const label = spec.label;
+          const obj = spec.obj;
+          const cmd = `${label} = Point(${obj})`; // Create point on the object with the label
+          const result = ggb.evalCmd(cmd); // Evaluate the command in GeoGebra
+          this.$ggbLabel = result; // Assign the resulting label to the point
+          throwIfLabelNull(
+            this.$ggbLabel,
+            `Point(object): could not create labeled point "${label}" along "${obj}"`
           );
           break;
         }
@@ -137,6 +154,11 @@ export const register = (
             throw badArgsError;
           }
           case 2: {
+            if (Sk.builtin.checkString(args[0]) && ggb.isGgbObject(args[1])) {
+              const label = args[0].v;
+              const obj = args[1].$ggbLabel;
+              return make({ kind: "label-arbitrary-on-object", label, obj });
+            }
             if (args.every(ggb.isPythonOrGgbNumber)) {
               const x = ggb.numberValueOrLabel(args[0]);
               const y = ggb.numberValueOrLabel(args[1]);
@@ -218,6 +240,7 @@ export const register = (
       color: ggb.sharedGetSets.color,
       color_floats: ggb.sharedGetSets.color_floats,
       size: ggb.sharedGetSets.size,
+      opacity: ggb.sharedGetSets.opacity,
       x: {
         $get(this: SkGgbPoint) {
           return new Sk.builtin.float_(this.$xCoord());
