@@ -1,7 +1,10 @@
 import { AppApi } from "../../shared/appApi";
-import { assembledCommand, augmentedGgbApi } from "../shared";
-import { SkulptApi } from "../../shared/vendor-types/skulptapi";
-
+import { assembledCommand, augmentedGgbApi,withPropertiesFromNameValuePairs,
+  WrapExistingCtorSpec,
+  SkGgbObject,
+  setGgbLabelFromArgs} from "../shared";
+import { SkObject, SkulptApi} from "../../shared/vendor-types/skulptapi";
+import { registerObjectType } from "../type-registry";
 declare var Sk: SkulptApi;
 
 // The right way to present Intersect() to Python is not obvious.  The

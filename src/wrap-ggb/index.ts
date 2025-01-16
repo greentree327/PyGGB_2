@@ -12,10 +12,10 @@ import { register as registerCentroid  } from "./wrappings/centroid";
 import { register as registerIncircle  } from "./wrappings/incircle";
 
 import { AppApi } from "../shared/appApi";
-import { register as registerAngle } from "./wrappings/angle"; // first modified function
 import { register as registerAreCollinear } from "./wrappings/arecollinear";// AreCollinear
 import { register as registerAreConcurrent } from "./wrappings/areconcurrent";// AreConcurrent
 import { register as registerAreConcyclic } from "./wrappings/areconcyclic";// AreConcyclic
+import { register as registerAreCongruent } from "./wrappings/arecongruent";// AreCongruent
 import { register as registerPoint } from "./wrappings/point";
 import { register as registerAngle } from "./wrappings/angle";
 import { register as registerCircle } from "./wrappings/circle";
@@ -77,6 +77,7 @@ declare var Sk: SkulptApi;
   registerAreCollinear(mod, appApi); //
   registerAreConcurrent(mod, appApi); //
   registerAreConcyclic(mod, appApi); //
+  registerAreCongruent(mod,appApi); //
   registerPoint(mod, appApi);
   registerAngle(mod, appApi);
   registerCircle(mod, appApi);
