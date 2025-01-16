@@ -28,7 +28,7 @@ export const register = (mod: any, appApi: AppApi) => {
     const ggb = augmentedGgbApi(appApi.ggb);
 
     const cls = Sk.abstr.buildNativeClass("AreCongruent", {
-        constructor: function AreCongruent(
+        constructor: function AreCongruent( // Two objects are congruent if they have the same size and shape
             this: SkGgbAreCongruent,
             spec: SkGgbAreCongruentCtorSpec
         ) {

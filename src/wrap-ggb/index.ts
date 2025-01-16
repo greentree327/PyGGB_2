@@ -18,6 +18,7 @@ import { register as registerAreConcyclic } from "./wrappings/areconcyclic";// A
 import { register as registerAreCongruent } from "./wrappings/arecongruent";// AreCongruent
 import { register as registerAreEqual } from "./wrappings/areequal";// AreEqual
 import { register as registerAreParallel } from "./wrappings/areparallel";// AreParallel
+import { register as registerArePerpendicular } from "./wrappings/areperpendicular";// ArePerpendicular
 
 import { register as registerPoint } from "./wrappings/point";
 import { register as registerAngle } from "./wrappings/angle";
@@ -83,6 +84,7 @@ declare var Sk: SkulptApi;
   registerAreCongruent(mod,appApi); //
   registerAreEqual(mod,appApi); //
   registerAreParallel(mod, appApi); //
+  registerArePerpendicular(mod, appApi); //
   registerPoint(mod, appApi);
   registerAngle(mod, appApi);
   registerCircle(mod, appApi);
