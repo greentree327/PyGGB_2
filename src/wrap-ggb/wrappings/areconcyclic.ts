@@ -3,24 +3,21 @@ import {
     augmentedGgbApi,
     withPropertiesFromNameValuePairs,
     SkGgbObject,
-    setGgbLabelFromArgs,
     assembledCommand,
 } from "../shared";
 
-import { SkObject, SkulptApi } from "../../shared/vendor-types/skulptapi";
+import { SkulptApi } from "../../shared/vendor-types/skulptapi";
 
 import { registerObjectType } from "../type-registry";
 
 declare var Sk: SkulptApi;
 
 interface SkGgbAreConcyclic extends SkGgbObject {  // AreConcyclic structure
-
     point1: SkGgbObject;
     point2: SkGgbObject;
     point3: SkGgbObject;
     point4: SkGgbObject;
     result?: boolean; // True if concyclic, otherwise false
-
 }
 
 type SkGgbAreConcyclicCtorSpec = { // input structure
@@ -39,26 +36,31 @@ export const register = (mod: any, appApi: AppApi) => {
             this: SkGgbAreConcyclic,
             spec: SkGgbAreConcyclicCtorSpec
         ) {
-            this.point1 = spec.point1; // 'this' refers to the current instance of the class (AreConcyclic class)
+            this.point1 = spec.point1;
             this.point2 = spec.point2;
-            this.point3 = spec.point3; // It assigns point3 from the input(spec) to this class point3 parameter
+            this.point3 = spec.point3;
             this.point4 = spec.point4;
-            
-            /* 
-            // ALso draws the angle on Geogebra WebApp, can use this to double check on the angle
-            
-            const polygon_method = assembledCommand("Polygon", [ // evalCmd returns a string
-                this.point1.$ggbLabel, // 'this' refers to the current instance of the class (AreConcyclic class)
-                this.point2.$ggbLabel,
-                this.point3.$ggbLabel, // It assigns point3 from the input(spec) to this class point3 parameter
-                this.point4.$ggbLabel
-            ])
 
-            ggb.evalCmd(`Angle(${polygon_method})`);
-            */
+            // Construct the GeoGebra AreConcyclic command
+            const concyclicCommand = assembledCommand("AreConcyclic", [
+                this.point1.$ggbLabel,
+                this.point2.$ggbLabel,
+                this.point3.$ggbLabel,
+                this.point4.$ggbLabel,
+            ]);
+
+            // Evaluate the AreConcyclic command in GeoGebra
+            const result = ggb.getValue(ggb.evalCmd(concyclicCommand));
+            if (result === 1) {
+                this.result = true;
+            } else if (result === 0) {
+                this.result = false;
+            } else {
+                throw new Sk.builtin.TypeError("AreConcyclic result is neither true nor false, pending fix");
+            }
 
             // Helper function to compute angle between two segments
-            const computeAngle = (pointA:SkGgbObject, pointB:SkGgbObject, pointC:SkGgbObject) => {
+            const computeAngle = (pointA: SkGgbObject, pointB: SkGgbObject, pointC: SkGgbObject) => {
                 const segment1 = assembledCommand("Segment", [pointA.$ggbLabel, pointB.$ggbLabel]);
                 const segment2 = assembledCommand("Segment", [pointA.$ggbLabel, pointC.$ggbLabel]);
                 const angleRadian = ggb.getValue(ggb.evalCmd(assembledCommand("Angle", [segment1, segment2])));
@@ -70,30 +72,34 @@ export const register = (mod: any, appApi: AppApi) => {
             const angle2 = computeAngle(this.point2, this.point3, this.point1);
             const angle3 = computeAngle(this.point3, this.point4, this.point2);
             const angle4 = computeAngle(this.point4, this.point1, this.point3);
-            
 
-            // Check if the sum of angles is supplementary (180°)
+            // Check if the opposite angles are supplementary (180°)
             const sumAngles13 = angle1 + angle3;
             const sumAngles24 = angle2 + angle4;
-            // Generate unique label using point labels and result
-            const uniqueLabel = `ConcyclicResult_${this.point1.$ggbLabel}_${this.point2.$ggbLabel}_${this.point3.$ggbLabel}_${this.point4.$ggbLabel}`;
 
-            if (sumAngles13 === 180){ 
-                this.result = true; // Opposite Angles of a Cyclic Quadrilateral Theorem
+            // Visual aid: Draw the cyclic quadrilateral and angles in GeoGebra
+            ggb.evalCmd(
+                assembledCommand("Polygon", [
+                    this.point1.$ggbLabel,
+                    this.point2.$ggbLabel,
+                    this.point3.$ggbLabel,
+                    this.point4.$ggbLabel,
+                ])
+            );
 
-                // Create Geogebra Object with the label CollinearResult_A_B_C, and assign it with the value of this.result
-                ggb.evalCmd(`${uniqueLabel} = ${this.result}`);
-
-                // Prepare and return 'message' at web display
-                const message = `Points ${this.point1.$ggbLabel}, ${this.point2.$ggbLabel}, ${this.point3.$ggbLabel} and ${this.point4.$ggbLabel} are concyclic. \n Opposite angles in a cyclic quadrilateral sum to 180°: ${this.point1.$ggbLabel} + ${this.point3.$ggbLabel} = ${sumAngles13}, ${this.point2.$ggbLabel} + ${this.point4.$ggbLabel} = ${sumAngles24}`;
-                return new Sk.builtin.str(message);
-            } else {
-                this.result = false;
-                ggb.evalCmd(`${uniqueLabel} = ${this.result}`);
-                const message = `Points ${this.point1.$ggbLabel}, ${this.point2.$ggbLabel}, ${this.point3.$ggbLabel} and ${this.point4.$ggbLabel} are NOT concyclic. \n Opposite angles in a cyclic quadrilateral should sum up to 180°: ${this.point1.$ggbLabel} + ${this.point3.$ggbLabel} = ${sumAngles13},${this.point2.$ggbLabel} + ${this.point4.$ggbLabel} = ${sumAngles24}`;
-                return new Sk.builtin.str(message);
-            }
-            
+            // Return a message explaining the result
+            const message = this.result
+                ? `Points ${this.point1.$ggbLabel}, ${this.point2.$ggbLabel}, ${this.point3.$ggbLabel}, and ${this.point4.$ggbLabel} are concyclic. Opposite angles sum to 180°: (${angle1.toFixed(
+                      2
+                  )} + ${angle3.toFixed(2)}) = ${sumAngles13.toFixed(2)}, (${angle2.toFixed(
+                      2
+                  )} + ${angle4.toFixed(2)}) = ${sumAngles24.toFixed(2)}`
+                : `Points ${this.point1.$ggbLabel}, ${this.point2.$ggbLabel}, ${this.point3.$ggbLabel}, and ${this.point4.$ggbLabel} are NOT concyclic. Opposite angles do not sum to 180°: (${angle1.toFixed(
+                      2
+                  )} + ${angle3.toFixed(2)}) = ${sumAngles13.toFixed(2)}, (${angle2.toFixed(
+                      2
+                  )} + ${angle4.toFixed(2)}) = ${sumAngles24.toFixed(2)}`;
+            return new Sk.builtin.str(message);
         },
         slots: {
             tp$new(args, kwargs) {
@@ -105,8 +111,7 @@ export const register = (mod: any, appApi: AppApi) => {
                     withPropertiesFromNameValuePairs(new mod.AreConcyclic(spec), kwargs);
 
                 if (args.length === 4 && ggb.everyElementIsGgbObjectOfType(args, "point")) {
-                    // return new Sk.builtin.str("Hello");
-                    return make({  
+                    return make({
                         point1: args[0],
                         point2: args[1],
                         point3: args[2],
@@ -116,22 +121,22 @@ export const register = (mod: any, appApi: AppApi) => {
 
                 throw badArgsError;
             },
-            tp$repr(this: SkGgbAreConcyclic) { // developer side
+            tp$repr(this: SkGgbAreConcyclic) { // Developer-side representation
                 return new Sk.builtin.str(
-                    this.result ? "AreConcyclic: true" : "AreConcyclic: false" // if this.result is true, then return true, else otherwise
+                    this.result ? "AreConcyclic: true" : "AreConcyclic: false"
                 );
             },
         },
         methods: {
-            // Method to return collinearity result
-            is_collinear(this: SkGgbAreConcyclic) {
+            // Method to return concyclicity result
+            is_concyclic(this: SkGgbAreConcyclic) {
                 return this.result
                     ? Sk.builtin.bool.true$
                     : Sk.builtin.bool.false$;
             },
         },
         getsets: {
-            // Getter for the collinearity result
+            // Getter for the concyclicity result
             result: {
                 get(this: SkGgbAreConcyclic) {
                     return this.result
@@ -144,4 +149,4 @@ export const register = (mod: any, appApi: AppApi) => {
 
     mod.AreConcyclic = cls;
     registerObjectType("are_concyclic", cls);
-}
+};
