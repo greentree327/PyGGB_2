@@ -164,6 +164,7 @@ export const register = (mod: any, appApi: AppApi) => {
         },
       },
       is_visible: ggb.sharedGetSets.is_visible,
+      with_label: ggb.sharedGetSets.label_visible,
       color: ggb.sharedGetSets.color,
       color_floats: ggb.sharedGetSets.color_floats,
       opacity: ggb.sharedGetSets.opacity,

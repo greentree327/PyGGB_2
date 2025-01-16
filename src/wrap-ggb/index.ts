@@ -8,6 +8,8 @@ import { register as registerTangent } from "./wrappings/tangent";
 import { register as registerCircumference } from "./wrappings/circumference";
 import { register as registerPerimeter } from "./wrappings/perimeter";
 import { register as registerRigidPolygon } from "./wrappings/rigid-polygon";
+import { register as registerCentroid  } from "./wrappings/centroid";
+import { register as registerIncircle  } from "./wrappings/incircle";
 
 import { AppApi } from "../shared/appApi";
 import { register as registerAngle } from "./wrappings/angle"; // first modified function
@@ -15,6 +17,7 @@ import { register as registerAreCollinear } from "./wrappings/arecollinear";// A
 import { register as registerAreConcurrent } from "./wrappings/areconcurrent";// AreConcurrent
 import { register as registerAreConcyclic } from "./wrappings/areconcyclic";// AreConcyclic
 import { register as registerPoint } from "./wrappings/point";
+import { register as registerAngle } from "./wrappings/angle";
 import { register as registerCircle } from "./wrappings/circle";
 import { register as registerEllipse } from "./wrappings/ellipse";
 import { register as registerLine } from "./wrappings/line";
@@ -56,12 +59,15 @@ declare var Sk: SkulptApi;
   registerArea(mod, appApi);
   registerArc(mod, appApi);
   registerMidPoint(mod, appApi);
-
+  
   registerPerpendicularBisector(mod, appApi);
   registerTangent(mod, appApi);
   registerCircumference(mod, appApi)
   registerPerimeter(mod, appApi)
   registerRigidPolygon(mod, appApi)
+  
+  registerCentroid(mod, appApi)
+  registerIncircle(mod, appApi);
 
 
 
@@ -72,6 +78,7 @@ declare var Sk: SkulptApi;
   registerAreConcurrent(mod, appApi); //
   registerAreConcyclic(mod, appApi); //
   registerPoint(mod, appApi);
+  registerAngle(mod, appApi);
   registerCircle(mod, appApi);
   registerEllipse(mod, appApi);
   registerLine(mod, appApi);
