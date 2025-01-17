@@ -51,6 +51,7 @@ export const register = (mod: any, appApi: AppApi) => {
         this.point3.$ggbLabel
       ]);
       const lbls = ggb.evalCmd(ggbCmd); // g
+      
       this.$ggbLabel = lbls; // Incircle ggblabel is g
       // TODO: Should have n.args + 1 labels here; check this.
 

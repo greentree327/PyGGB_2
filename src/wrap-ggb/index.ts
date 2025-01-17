@@ -10,6 +10,8 @@ import { register as registerPerimeter } from "./wrappings/perimeter";
 import { register as registerRigidPolygon } from "./wrappings/rigid-polygon";
 import { register as registerCentroid  } from "./wrappings/centroid";
 import { register as registerIncircle  } from "./wrappings/incircle";
+import { register as registerCircumcentre  } from "./wrappings/circumcentre"; //
+import { register as registerOrthocentre  } from "./wrappings/orthocentre"; //
 
 import { AppApi } from "../shared/appApi";
 import { register as registerAreCollinear } from "./wrappings/arecollinear";// AreCollinear
@@ -19,7 +21,7 @@ import { register as registerAreCongruent } from "./wrappings/arecongruent";// A
 import { register as registerAreEqual } from "./wrappings/areequal";// AreEqual
 import { register as registerAreParallel } from "./wrappings/areparallel";// AreParallel
 import { register as registerArePerpendicular } from "./wrappings/areperpendicular";// ArePerpendicular
-
+import { register as registerPerpendicularLine } from "./wrappings/perpendicularline";// PerpendicularLine
 import { register as registerPoint } from "./wrappings/point";
 import { register as registerAngle } from "./wrappings/angle";
 import { register as registerCircle } from "./wrappings/circle";
@@ -70,10 +72,10 @@ declare var Sk: SkulptApi;
   registerPerimeter(mod, appApi)
   registerRigidPolygon(mod, appApi)
   
-  registerCentroid(mod, appApi)
+  registerCentroid(mod, appApi);
   registerIncircle(mod, appApi);
-
-
+  registerCircumcentre(mod, appApi);
+  registerOrthocentre(mod, appApi);
 
 
 
@@ -85,6 +87,8 @@ declare var Sk: SkulptApi;
   registerAreEqual(mod,appApi); //
   registerAreParallel(mod, appApi); //
   registerArePerpendicular(mod, appApi); //
+  registerPerpendicularLine(mod, appApi); //
+
   registerPoint(mod, appApi);
   registerAngle(mod, appApi);
   registerCircle(mod, appApi);
