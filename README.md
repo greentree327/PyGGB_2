@@ -11,7 +11,7 @@ A webapp to allow people to interact with GeoGebra via Python.
 If the function return (Nan, Nan), it indicates either no intersecting point/ infinite intersecting points
 3. added AreConcurrent function, also modified line.ts function to accept user-defined input
 5. AreConcyclic, AreCongruent, AreEqual, areParallel, areCollinear, arePerpendicular done (17/1)
-6. Update Centroid(Polygon) and Incircle(Point, Point, Point) so that they return the x,y coordinate of centroid and incentre respectively
+6. Update Centroid(Polygon) and Incircle(Point, Point, Point) so that they return the x,y coordinate of centroid and incentre respectively, create circumcentre.ts and orthocentre.ts, and perpendicularline.ts
    
 ## Added Functions for Area, Arc, and Mid Points - 10/01/2025 - Kelvin
 Done:
