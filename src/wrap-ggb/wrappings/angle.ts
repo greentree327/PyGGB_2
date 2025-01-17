@@ -50,7 +50,7 @@ export const register = (mod: any, appApi: AppApi) => { // connects your code to
             spec: SkGgbAngleCtorSpec // contains information about how the object should be created or what it should represent.
         ) {
             // ############################################################# best to define the angle name base on the question text
-            const setLabelArgs = setGgbLabelFromArgs(ggb, this, "Angle"); 
+            const setLabelArgs = setGgbLabelFromArgs(ggb, this, "Angle");  // stores the result of the function in a const (setLabelArgs)
                 // setLabelArgs: prepares the Angle object by linking it to specific Geogebra elements (points, lines, apex) through their labels
                 // function takes in 3 params, (Geogebra API, angle object, type="angle"), and creates a unique label like "A", "B","C" etc
                 

@@ -38,7 +38,7 @@ export const register = (
 
   const cls = Sk.abstr.buildNativeClass("Centroid", {
     constructor: function Centroid(this: SkGgbCentroid, spec: SkGgbCentroidCtorSpec) {
-      const setLabelCmd = setGgbLabelFromCmd(ggb, this);
+      // const setLabelCmd = setGgbLabelFromCmd(ggb, this);
 
       switch (spec.kind) {
         case "wrap-existing": {
