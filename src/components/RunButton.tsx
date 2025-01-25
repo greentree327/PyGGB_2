@@ -61,3 +61,23 @@ export const StopButton: React.FC<{}> = () => {
     </div>
   );
 };
+
+export const ExportButton: React.FC<{}> = () => {
+  const executionStatus = useStoreState((s) => s.controls.executionStatus);
+  const exportFile = useStoreActions((a) => a.controls.exportFile);
+
+  const enabled =
+    executionStatus.state === "idle" || executionStatus.state === "paused";
+  return (
+    <div className="ControlButton export-button">
+      <Button
+        variant="success"
+        size="sm"
+        disabled={!enabled}
+        onClick={() => exportFile()}
+      >
+        EXPORT
+      </Button>
+    </div>
+  );
+};

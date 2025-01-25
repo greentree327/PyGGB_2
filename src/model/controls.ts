@@ -21,6 +21,7 @@ export type Controls = {
   runProgram: Thunk<Controls, void, {}, PyGgbModel>;
   pauseProgram: Thunk<Controls, void, {}, PyGgbModel>;
   stopProgram: Thunk<Controls, void, {}, PyGgbModel>;
+  exportFile: Thunk<Controls, void, {}, PyGgbModel>;
 
   handleStartRun: Thunk<Controls, void>;
   handleEnterSleep: Thunk<Controls, SleepInterruptionActions>;
@@ -193,5 +194,44 @@ export const controls: Controls = {
         );
         break;
     }
+  }),
+  exportFile: thunk(async (a, _voidPayload, helpers) => {
+
+    // Function to download data to a file
+    function download(data: any, filename: string = "file.ggb") {
+      var file = new Blob([data], {type: "application/vnd.geogebra.file"});
+          var a = document.createElement("a"),
+                  url = URL.createObjectURL(file);
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(function() {
+              document.body.removeChild(a);
+              window.URL.revokeObjectURL(url);  
+          }, 0); 
+    }
+
+    function base64ToBinary(base64: string){
+      const binaryString = window.atob(base64);
+      const length = binaryString.length;
+      const bytes = new Uint8Array(length);
+      for (let i = 0; i < length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    const storeState = helpers.getStoreState();
+    const { ggbApi } = storeState.dependencies;
+
+    if (ggbApi === null) {
+      console.error("exportFile() called without ggbApi");
+      return;
+    }
+
+    const raw = base64ToBinary(ggbApi.getBase64());
+
+    download(raw);
   }),
 };

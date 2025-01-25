@@ -48,6 +48,8 @@ import { register as registerOnTemperatureReport } from "./web-hid/on-temperatur
 
 import { register as registerInterruptibleSleep } from "./interruptible-sleep";
 
+import { register as registerGetBase64 } from "./getBase64";
+
 import { SkulptApi } from "../shared/vendor-types/skulptapi";
 declare var Sk: SkulptApi;
 
@@ -114,6 +116,8 @@ declare var Sk: SkulptApi;
   registerOnTemperatureReport(mod, appApi);
 
   registerInterruptibleSleep(mod, appApi);
+
+  registerGetBase64(mod, appApi);
 
   return mod;
 };

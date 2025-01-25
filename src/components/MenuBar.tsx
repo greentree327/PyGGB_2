@@ -4,7 +4,7 @@ import { Container, Navbar, NavDropdown, Spinner } from "react-bootstrap";
 import { OperationalBackingFileState } from "../model/editor";
 import { assertNever } from "../shared/utils";
 import { useStoreActions, useStoreState } from "../store";
-import { RunButton, PauseButton, StopButton } from "./RunButton";
+import { RunButton, PauseButton, StopButton, ExportButton } from "./RunButton";
 import { AboutButton } from "./AboutButton";
 
 type FilenameProps = {
@@ -161,6 +161,9 @@ export const MenuBar: React.FC<{}> = () => {
         </Navbar.Brand>
         <Navbar.Brand>
           <StopButton />
+        </Navbar.Brand>
+        <Navbar.Brand> 
+          <ExportButton />
         </Navbar.Brand>
         <NavDropdown title="File">
           <NavDropdown.Item onClick={launchNewFile}>New</NavDropdown.Item>

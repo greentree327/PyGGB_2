@@ -46,4 +46,6 @@ export type GgbApi = {
 
   reset(): void;
   setSize(width: number, height: number): void;
+
+  getBase64(): string;
 };
