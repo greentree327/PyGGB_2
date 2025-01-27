@@ -26,9 +26,12 @@ export const register = (mod: any, appApi: AppApi) => {
       const objectArg = (args[objIndex] as SkGgbObject).$ggbLabel; // Assert type here
 
       // const objectArg = args[labelArg? 1 : 0].$ggbLabel;
-      const pyAngle = args[labelArg? 2 : 1];
+      const pyAngle = args[labelArg? 2 : 1]; // If label is present, angle = args[2]; else angle = args[1]
       ggb.throwIfNotPyOrGgbNumber(pyAngle, "rotation angle");
-      const angleArg = ggb.numberValueOrLabel(pyAngle);
+      const anglestring = ggb.numberValueOrLabel(pyAngle);
+      const anglenumber = ggb.getValue(anglestring);
+      let anglenumber_degree = anglenumber * (Math.PI / 180);
+      let angleArg: string = anglenumber_degree.toString();
       // const ggbArgs = [args[0].$ggbLabel, angleArg, ...extraArgs];
       // const objectArg = args[labelArg? 1 : 0].$ggbLabel;
       const ggbArgs = [objectArg, angleArg, ...extraArgs];

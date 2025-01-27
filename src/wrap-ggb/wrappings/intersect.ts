@@ -1,114 +1,88 @@
 import { AppApi } from "../../shared/appApi";
-import { assembledCommand, augmentedGgbApi,withPropertiesFromNameValuePairs,
-  WrapExistingCtorSpec,
+import {
+  augmentedGgbApi,
+  withPropertiesFromNameValuePairs,
   SkGgbObject,
-  setGgbLabelFromArgs} from "../shared";
-import { SkObject, SkulptApi} from "../../shared/vendor-types/skulptapi";
+  WrapExistingCtorSpec,
+  SpecConstructible,
+  setGgbLabelFromCmd,assembledCommand
+} from "../shared";
+import { SkulptApi } from "../../shared/vendor-types/skulptapi";
 import { registerObjectType } from "../type-registry";
+
 declare var Sk: SkulptApi;
 
-// The right way to present Intersect() to Python is not obvious.  The
-// native Ggb return value is a list/array, which we could wrap in a
-// sequence-like object to Python.  This would have the advantage of
-// letting the list of intersection points update as the intersecting
-// objects move.  However, some Python operations on sequences e.g.,
-// sorted(), return actual Python lists so at that point we'd lose the
-// tie to the native Ggb array of intersections.  For v1, we settled on
-// only supporting the Intersect(p, q, n) form of the Ggb function.
+interface SkGgbIntersect extends SkGgbObject {
+  object1: SkGgbObject;
+  object2: SkGgbObject;
+  index?: number;
+  range?: { x1: number; x2: number };
+}
 
-export const register = (mod: any, appApi: AppApi) => {
+type SkGgbIntersectCtorSpec =
+  | WrapExistingCtorSpec
+  | {
+      kind: "basic";
+      object1: SkGgbObject;
+      object2: SkGgbObject;
+    }
+  | {
+      kind: "indexed";
+      object1: SkGgbObject;
+      object2: SkGgbObject;
+      index: string;
+    }
+  | {
+    kind: "Initial Point";
+    object1: SkGgbObject;
+    object2: SkGgbObject;
+    point: SkGgbObject;
+  } 
+  | {
+      kind: "range";
+      object1: SkGgbObject;
+      object2: SkGgbObject;
+      x1: number;
+      x2: number;
+    }
+  | {
+      kind: "labeled-indexed";
+      label: string;
+      object1: SkGgbObject;
+      object2: SkGgbObject;
+      index: string;
+    };
+
+export const register = (
+  mod: { Intersect: SpecConstructible<SkGgbIntersectCtorSpec, SkGgbIntersect> },
+  appApi: AppApi
+) => {
   const ggb = augmentedGgbApi(appApi.ggb);
 
-  const fun = new Sk.builtin.func((...args) => {   // ...args: allow the function to accept any number of parameters, which are gathered into an array called args
-    const badArgsError = new Sk.builtin.TypeError( // predefine badArgsError for later use
-      "Intersect() arguments must be two GeoGebra objects, followed by python numbers or a Geogebra point object"
-    );
+  const cls = Sk.abstr.buildNativeClass("Intersect", {
+    constructor: function Intersect(this: SkGgbIntersect, spec: SkGgbIntersectCtorSpec) {
+      const setLabelCmd = setGgbLabelFromCmd(ggb, this); // Call the Outer Function, The result is a new function, setLabelCmd,
+      let ggbCmd; // currently undefined
 
-    if (args.length < 2 || args.length > 4){
-      throw new Sk.builtin.RuntimeError(
-        `Intersect() arguments nust be bewteen 2-4`
-      );
-    }
-
-    const [object1, object2, optionalArg1, optionalArg2] = args // array destructing, it assigns values from the args array to the specific variables in [], based on their position in the array 
-      // if less than 4 arguments are passed into args (i.e. 3 arguments), then optionalArg2 will be undefined
-    
-    if (!ggb.isGgbObject(object1) || !ggb.isGgbObject(object2)) {
-      throw badArgsError;
-    }
-
-    let ggbCmd; // currently undefined
-
-    if (args.length === 2) {
-      ggbCmd = assembledCommand("Intersect", [
-        object1.$ggbLabel,
-        object2.$ggbLabel
-      ])
-    } else if (args.length === 3) {
-      // Intersect(A,B, <Index of intersecting point> or <Initial Point>)
-      if (ggb.isPythonOrGgbNumber(optionalArg1)) {  // returns true if optionalArg is a python number or a Geogebra numeric object (e.g. 3, 5.7, x = 2)
-        ggbCmd = assembledCommand("Intersect", [
-          object1.$ggbLabel,
-          object2.$ggbLabel,
-          ggb.numberValueOrLabel(optionalArg1) // If optionalArg1 is Geogebra object, return its label; else, return the exponential form of the number
-        ])
-      } else if (ggb.isGgbObject(optionalArg1)) {  // returns a declaration that optionalArg1 can be treated as SkGgbObject in the subsequent code
-          if (ggb.isGgbObject(optionalArg1), 'point') { // returns true if optionalArg1 is a point object in Geogebra
-            ggbCmd = assembledCommand("Intersect", [
-              object1.$ggbLabel,
-              object2.$ggbLabel,
-              optionalArg1.$ggbLabel,
-            ])
-          } else {
-            throw badArgsError;
-          }
-        
-      } else {
-        throw badArgsError;
-      }
-    } else if (args.length === 4){
-      // Intersect(A,B,x1,x2), find the intersecting point inside range(x1,x2)
-      if (
-          ggb.isPythonOrGgbNumber(optionalArg1) && 
-          ggb.isPythonOrGgbNumber(optionalArg2)
-      ) {
-          // Convert GeoGebra-style exponential notation to a number, evaluate the expression, and format it to 15 significant digits.
-          const startingX = parseFloat(eval(ggb.numberValueOrLabel(optionalArg1).replace(/\*10\^\(\+?(-?\d+)\)/g, "* Math.pow(10, $1)")).toPrecision(15)); 
-          const endingX = parseFloat(eval(ggb.numberValueOrLabel(optionalArg2).replace(/\*10\^\(\+?(-?\d+)\)/g, "* Math.pow(10, $1)")).toPrecision(15));
-            /*
-            Regex breakdown:
-            - / and /g: define the regex pattern, and enable the global search flag (g) to replace all atches in the string
-            - \*: Matches the multiplication character (*)
-            - 10\^: Matches the base 10 notation (10^)
-            - \(: Match the open parathensis (
-            - \+?: Matches an optional + sign
-            - (-?\d+) :
-              - -?: allows an optional - sign
-              - \d: matches any digits; +: one or more; \d+: matches one or more digits
-            - \): Match the close parathensis )
-
-            Replacement string:
-            - $1: Refers to the captured exponent from the regex match(i.e. the number inside (-?\d+))
-            */
-       
-          // Step 1: Find all intersection points using Intersect(Object1, Object2)
-          ggbCmd = assembledCommand("Intersect", [
-            object1.$ggbLabel,
-            object2.$ggbLabel,
-          ]);
-          // Evaluate the command to get all intersection points
-          const label = ggb.evalCmdMultiple(ggbCmd);
-          const filteredLabel = label.filter(item => item !== null && item !== 'null'); // remove both type null and string null in array, 
-
-          // Step 2: Filter points based on the x-coordinate bounds
-          const filteredPoints = filteredLabel.filter((filteredLabel) => {
-            const xCoord = ggb.getXcoord(filteredLabel);
-            return xCoord >= startingX && xCoord <= endingX;
-          })
+      switch (spec.kind) {
+        case "wrap-existing": {
+          this.$ggbLabel = spec.label;
           
-          // Check for empty results
+          break;
+        }
+        case "basic": {
+          const ggbCmd = `Intersect(${spec.object1.$ggbLabel}, ${spec.object2.$ggbLabel})`; 
+          // Set the label, allowing null results
+          setLabelCmd(ggbCmd, { allowNullLabel: true }); // We can now call the returned setLabelCmd function with its own parameters: (fullCommand, ?userOptions)
+
+          const label = ggb.evalCmdMultiple(ggbCmd);
+          const filteredLabel = label.filter(item => item !== null && item !== 'null'); // filter null
+          const filteredPoints = filteredLabel.filter((filteredLabel) => { // filter Intersection point with (Nan,NaN)
+            const xCoord = ggb.getXcoord(filteredLabel);
+            return xCoord ; 
+          });
           if (filteredPoints.length === 0) {
-            const message = `No intersection points found within the x-interval [${startingX}, ${endingX}]`;
+            const message = `No intersection points found`
             return new Sk.builtin.str(message);
           }
           // Wrap and return the filtered points as a Python string
@@ -117,47 +91,223 @@ export const register = (mod: any, appApi: AppApi) => {
             return new Sk.builtin.str(result.join(", ")) // ok
           } 
           else if (typeof filteredPoints === "string") {
-            return new Sk.builtin.str(filteredPoints); // Return as a Python-compatible string
+            return ggb.wrapExistingGgbObject(filteredPoints); // Return as a Python-compatible string
           } 
           else {
             throw new Error(`Unexpected return type: ${typeof filteredPoints}`);
           } 
-      } else {
-        throw badArgsError;
+          break;
+        }
+        case "indexed": {
+          const ggbCmd = `Intersect(${spec.object1.$ggbLabel}, ${spec.object2.$ggbLabel}, ${spec.index})`; 
+          setLabelCmd(ggbCmd, { allowNullLabel: true });
+
+          const label = ggb.evalCmdMultiple(ggbCmd);
+          const filteredLabel = label.filter(item => item !== null && item !== 'null'); // filter null
+          // Extract x-coordinates for valid labels
+          const filteredPoints = filteredLabel.filter((filteredLabel) => { // filter Intersection point with (Nan,NaN)
+            const xCoord = ggb.getXcoord(filteredLabel);
+            return xCoord ; 
+          });
+          if (filteredPoints.length === 0) {
+            const message = `No intersection points found`
+            return new Sk.builtin.str(message);
+          }
+          // Wrap and return the filtered points as a Python string
+          if (Array.isArray(filteredPoints)) { // if the result is an array
+            const result =  filteredPoints.map((item) => ggb.wrapExistingGgbObject(item)); // ok
+            return new Sk.builtin.str(result.join(", ")) // ok
+          } 
+          else if (typeof filteredPoints === "string") {
+            return ggb.wrapExistingGgbObject(filteredPoints); // Return as a Python-compatible string
+          } 
+          else {
+            throw new Error(`Unexpected return type: ${typeof filteredPoints}`);
+          } 
+          break;
+        }
+        case "Initial Point": {
+          const ggbCmd = `Intersect(${spec.object1.$ggbLabel}, ${spec.object2.$ggbLabel}, ${spec.point.$ggbLabel})`; 
+          setLabelCmd(ggbCmd, { allowNullLabel: true });
+
+          const label = ggb.evalCmdMultiple(ggbCmd);
+          const filteredLabel = label.filter(item => item !== null && item !== 'null'); // filter null
+          // Extract x-coordinates for valid labels
+          const filteredPoints = filteredLabel.filter((filteredLabel) => { // filter Intersection point with (Nan,NaN)
+            const xCoord = ggb.getXcoord(filteredLabel);
+            return xCoord ; 
+          });
+          if (filteredPoints.length === 0) {
+            const message = `No intersection points found`
+            return new Sk.builtin.str(message);
+          }
+          // Wrap and return the filtered points as a Python string
+          if (Array.isArray(filteredPoints)) { // if the result is an array
+            const result =  filteredPoints.map((item) => ggb.wrapExistingGgbObject(item)); // ok
+            return new Sk.builtin.str(result.join(", ")) // ok
+          } 
+          else if (typeof filteredPoints === "string") {
+            return ggb.wrapExistingGgbObject(filteredPoints); // Return as a Python-compatible string
+          } 
+          else {
+            throw new Error(`Unexpected return type: ${typeof filteredPoints}`);
+          } 
+          break;
+        }
+        case "range": {
+          const ggbCmd = `Intersect(${spec.object1.$ggbLabel}, ${spec.object2.$ggbLabel})`; 
+          setLabelCmd(ggbCmd, { allowNullLabel: true });
+
+          const label = ggb.evalCmdMultiple(ggbCmd);
+          
+          const filteredLabel = label.filter(item => item !== null && item !== 'null');
+          // Filter points based on the x-coordinate range
+          const filteredPoints = filteredLabel.filter((filteredLabel) => {
+            const xCoord = ggb.getXcoord(filteredLabel);
+            return xCoord >= spec.x1 && xCoord <= spec.x2;
+          });
+          
+          if (filteredPoints.length === 0) {
+            const message = `No intersection points found within the x-interval [${spec.x1}, ${spec.x2}]`
+            return new Sk.builtin.str(message);
+          }
+          // Wrap and return the filtered points as a Python string
+          if (Array.isArray(filteredPoints)) { // if the result is an array
+            const result =  filteredPoints.map((item) => ggb.wrapExistingGgbObject(item)); // ok
+            return new Sk.builtin.str(result.join(", ")) // ok
+          } 
+          else if (typeof filteredPoints === "string") {
+            return ggb.wrapExistingGgbObject(filteredPoints); // Return as a Python-compatible string
+          } 
+          else {
+            throw new Error(`Unexpected return type: ${typeof filteredPoints}`);
+          } 
+          break;
+        }
+          
+        case "labeled-indexed": {
+          this.$ggbLabel = spec.label;
+
+          const ggbCmd = `${spec.label} = Intersect(${spec.object1.$ggbLabel}, ${spec.object2.$ggbLabel}, ${spec.index})`;
+          setLabelCmd(ggbCmd, { allowNullLabel: true });
+          const label = ggb.evalCmd(ggbCmd);
+          return ggb.wrapExistingGgbObject(label);
+          break;
+        }
+        default:
+          throw new Sk.builtin.TypeError(
+            `bad Intersect spec kind "${(spec as any).kind}"`
+          );
       }
-      
-    } else {
-      throw badArgsError;
-    }
 
-    // It seems that always get a Point.  If there is no Nth
-    // intersection, the Point has NaN coords.
-    const label = ggb.evalCmdMultiple(ggbCmd); // returns an array
-    const filteredLabel = label.filter(item => item !== null && item !== 'null'); // remove both type null and string null in array, 
+      this.$updateHandlers = [];
+      ggb.registerObjectUpdateListener(this.$ggbLabel, () =>
+        this.$fireUpdateEvents()
+      );
+    },
+    slots: {
+      tp$new(args, kwargs) {
+        const badArgsError = new Sk.builtin.TypeError(
+          "Intersect() arguments must be (object1, object2), " +
+            "(object1, object2, index), " +
+            "(object1, object2, point)"  +
+            "(object1, object2, x1, x2), or " +
+            "(label, object1, object2, index)"
+        );
 
+        const make = (spec: SkGgbIntersectCtorSpec) =>
+          withPropertiesFromNameValuePairs(new mod.Intersect(spec), kwargs);
 
-    if (Array.isArray(filteredLabel)) { // if the result is an array
-      const result =  filteredLabel.map((item) => ggb.wrapExistingGgbObject(item)); // ok
-      return new Sk.builtin.str(result.join(", ")) // ok
-    } 
-    else if (typeof filteredLabel === "string") {
-      return new Sk.builtin.str(filteredLabel); // Return as a Python-compatible string
-    } 
-    else {
-      throw new Error(`Unexpected return type: ${typeof filteredLabel}`);
-    }
-
-    // TODO: Will we always get Points back?  Assert this?  Do we need to
-    // distinguish between free and derived points?  What happens if when we
-    // initially Intersect a Segment and a Polygon, they don't intersect, but
-    // then I drag one end of the Segment such that it intersects the Polygon
-    // twice.  The "Intersection" object does what?  Looks like it tracks one of
-    // the intersection points.  Both intersections are shown on the
-    // construction though.
-    //
-    // If you intersect two Segments which are collinear and overlap, you get
-    // back a NaN,Nan point.
+        switch (args.length) {
+          case 2: {
+            if (ggb.isGgbObject(args[0]) && ggb.isGgbObject(args[1])) {
+              return make({ kind: "basic", object1: args[0], object2: args[1] });
+            }
+            throw badArgsError;
+          }
+          case 3: { // Intersect(A,B, <Index of intersecting point> or <Initial Point>)
+            if (ggb.isGgbObject(args[0]) && ggb.isGgbObject(args[1]) && ggb.isPythonOrGgbNumber(args[2])) {
+              const index = ggb.numberValueOrLabel(args[2]);
+              return make({
+                kind: "indexed",
+                object1: args[0],
+                object2: args[1],
+                index: index,
+              });
+            } else if (ggb.isGgbObject(args[0]) && ggb.isGgbObject(args[1]) && (ggb.isGgbObject(args[2]), 'point')) {
+              if (ggb.isGgbObject(args[2])) {
+                return make({
+                  kind: "Initial Point",
+                  object1: args[0],
+                  object2: args[1],
+                  point: args[2],
+                });
+              }
+            }
+            throw badArgsError;
+          }
+          case 4: {
+            if (Sk.builtin.checkString(args[0]) && ggb.isGgbObject(args[1]) && ggb.isGgbObject(args[2]) && ggb.isPythonOrGgbNumber(args[3])) {
+              const label = args[0].v;
+              const index = ggb.numberValueOrLabel(args[3]);
+              return make({
+                kind: "labeled-indexed",
+                label,
+                object1: args[1],
+                object2: args[2],
+                index: index,
+              });
+            } else if (
+              ggb.isGgbObject(args[0]) &&
+              ggb.isGgbObject(args[1]) &&
+              ggb.isPythonOrGgbNumber(args[2]) &&
+              ggb.isPythonOrGgbNumber(args[3])
+            ) {
+              const x1 = parseFloat(
+                eval(ggb.numberValueOrLabel(args[2]).replace(/\*10\^\(\+?(-?\d+)\)/g, "* Math.pow(10, $1)"))
+              );
+              const x2 = parseFloat(
+                eval(ggb.numberValueOrLabel(args[3]).replace(/\*10\^\(\+?(-?\d+)\)/g, "* Math.pow(10, $1)"))
+              );
+              return make({
+                kind: "range",
+                object1: args[0],
+                object2: args[1],
+                x1,
+                x2,
+              });
+            }
+            throw badArgsError;
+          }
+          default:
+            throw badArgsError;
+        }
+      },
+      ...ggb.sharedOpSlots,
+    },
+    methods: {
+      when_moved: {
+        $meth(this: SkGgbIntersect, pyFun: any) {
+          this.$updateHandlers.push(pyFun);
+          return pyFun;
+        },
+        $flags: { OneArg: true },
+      },
+      ...ggb.withPropertiesMethodsSlice,
+      ...ggb.freeCopyMethodsSlice,
+      ...ggb.deleteMethodsSlice,
+    },
+    getsets: {
+      is_visible: ggb.sharedGetSets.is_visible,
+      with_label: ggb.sharedGetSets.label_visible,
+      is_independent: ggb.sharedGetSets.is_independent,
+      color: ggb.sharedGetSets.color,
+      color_floats: ggb.sharedGetSets.color_floats,
+      size: ggb.sharedGetSets.size,
+      _ggb_type: ggb.sharedGetSets._ggb_type,
+    },
   });
 
-  mod.Intersect = fun;
+  mod.Intersect = cls;
+  registerObjectType("intersect", cls);
 };
