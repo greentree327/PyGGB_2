@@ -1,95 +1,179 @@
 import { AppApi } from "../../shared/appApi";
-import { augmentedGgbApi, assembledCommand,SkGgbObject, AugmentedGgbApi } from "../shared";
+import {
+  augmentedGgbApi,
+  withPropertiesFromNameValuePairs,
+  SkGgbObject,
+  SpecConstructible,
+  setGgbLabelFromCmd,
+  assembledCommand,
+} from "../shared";
 import { SkulptApi } from "../../shared/vendor-types/skulptapi";
+import { registerObjectType } from "../type-registry";
 
 declare var Sk: SkulptApi;
 
-export const register = (mod: any, appApi: AppApi) => {
-  const ggb: AugmentedGgbApi = augmentedGgbApi(appApi.ggb);
+interface SkGgbRotate extends SkGgbObject {
+  object: SkGgbObject;
+  angle: number;
+  rotationCenter?: SkGgbObject;
+}
 
-  const fun = new Sk.builtin.func((...args) => {
-    const badArgsError = new Sk.builtin.TypeError(
-      "Rotate() arguments must be" +
-        " (object, angle)" +
-        " or (object, angle, rotation_center_point)" +
-        " (label, object, angle, rotation_center_point)"
-      );
-
-    const ggbRotate = (extraArgs: Array<string>, labelArg?: string) => {
-
-      const objIndex = labelArg ? 1 : 0;
-
-      // Narrow the type of args[objIndex] to SkGgbObject
-      if (!ggb.isGgbObject(args[objIndex])) {
-        throw badArgsError;
-      }
-      const objectArg = (args[objIndex] as SkGgbObject).$ggbLabel; // Assert type here
-
-      // const objectArg = args[labelArg? 1 : 0].$ggbLabel;
-      const pyAngle = args[labelArg? 2 : 1]; // If label is present, angle = args[2]; else angle = args[1]
-      ggb.throwIfNotPyOrGgbNumber(pyAngle, "rotation angle");
-      const anglestring = ggb.numberValueOrLabel(pyAngle);
-      const anglenumber = ggb.getValue(anglestring);
-      let anglenumber_degree = anglenumber * (Math.PI / 180);
-      let angleArg: string = anglenumber_degree.toString();
-      // const ggbArgs = [args[0].$ggbLabel, angleArg, ...extraArgs];
-      // const objectArg = args[labelArg? 1 : 0].$ggbLabel;
-      const ggbArgs = [objectArg, angleArg, ...extraArgs];
-
-      let ggbCmd;
-      if (labelArg) {
-        ggbCmd = `${labelArg} = ${assembledCommand("Rotate", ggbArgs)}`;
-      } else {
-        ggbCmd = assembledCommand("Rotate", ggbArgs);
-      }
-      
-      const label = ggb.evalCmd(ggbCmd);
-      return ggb.wrapExistingGgbObject(label);
-      /*
-      // Wrap the object and return it
-      const rotatedObject = ggb.wrapExistingGgbObject(label);
-
-      // Get the coordinates of the rotated object
-      const xCoord = ggb.getXcoord(label);
-      const yCoord = ggb.getYcoord(label);
-
-      // Return the rotated object and its coordinates
-      return new Sk.builtin.tuple([
-        rotatedObject,
-        new Sk.builtin.float_(xCoord),
-        new Sk.builtin.float_(yCoord),
-      ]);
-      */
+type SkGgbRotateCtorSpec =
+  | {
+      kind: "basic"; // Rotate(object, angle), centre of rotation = (0,0)
+      object: SkGgbObject;
+      angle: number;
+    }
+  | {
+      kind: "center"; // Rotate(object, angle, rotation_center_point)
+      object: SkGgbObject;
+      angle: number;
+      rotationCenter: SkGgbObject;
+    }
+  | {
+      kind: "labeled-center"; // Rotate(label, object, angle, rotation_center_point)
+      label: string;
+      object: SkGgbObject;
+      angle: number;
+      rotationCenter: SkGgbObject;
     };
 
-    switch (args.length) {
-      case 2: {
-        return ggbRotate([]);
-      }
-      case 3: {
-        if (!ggb.isGgbObjectOfType(args[2], "point")) {
-          throw badArgsError;
-        }
-        return ggbRotate([args[2].$ggbLabel]);
-      }
-      case 4: {
-        // (label, object, angle, rotation_center_point)
-        if (!Sk.builtin.checkString(args[0])) {
-          throw badArgsError;
-        }
-        if (!ggb.isGgbObjectOfType(args[3], "point")) {
-          throw badArgsError;
-        }
+export const register = (
+  mod: { Rotate: SpecConstructible<SkGgbRotateCtorSpec, SkGgbRotate> },
+  appApi: AppApi
+) => {
+  const ggb = augmentedGgbApi(appApi.ggb);
 
-        const label = args[0].v; // Extract the label as a string
-        return ggbRotate([args[3].$ggbLabel], label);
+  const cls = Sk.abstr.buildNativeClass("Rotate", {
+    constructor: function Rotate(this: SkGgbRotate, spec: SkGgbRotateCtorSpec) {
+      const setLabelCmd = setGgbLabelFromCmd(ggb, this); // Helper function for setting labels
+      let ggbCmd: string; // Command to execute
+
+      // Handle different cases based on `spec.kind`
+      switch (spec.kind) {
+        case "basic": {
+          // Rotate(object, angle)
+          const angleInRadians = (spec.angle * Math.PI) / 180; // Convert to radians
+          ggbCmd = `Rotate(${spec.object.$ggbLabel}, ${angleInRadians})`;
+          setLabelCmd(ggbCmd, { allowNullLabel: true });
+          break;
+        }
+        case "center": {
+          // Rotate(object, angle, rotation_center_point)
+          const angleInRadians = (spec.angle * Math.PI) / 180;
+          ggbCmd = `Rotate(${spec.object.$ggbLabel}, ${angleInRadians}, ${spec.rotationCenter.$ggbLabel})`;
+          setLabelCmd(ggbCmd, { allowNullLabel: true });
+          break;
+        }
+        case "labeled-center": {
+          // Rotate(label, object, angle, rotation_center_point)
+          const angleInRadians = (spec.angle * Math.PI) / 180;
+          ggbCmd = `${spec.label} = Rotate(${spec.object.$ggbLabel}, ${angleInRadians}, ${spec.rotationCenter.$ggbLabel})`;
+          setLabelCmd(ggbCmd, { allowNullLabel: true });
+          break;
+        }
+        default:
+          throw new Sk.builtin.TypeError(
+            `Invalid Rotate spec kind "${(spec as any).kind}"`
+          );
       }
 
-      default:
-        throw badArgsError;
-    }
+      // Evaluate the command and set the label
+      const label = ggb.evalCmd(ggbCmd);
+      this.$ggbLabel = label;
+
+      // Register update handlers for the rotated object
+      this.$updateHandlers = [];
+      ggb.registerObjectUpdateListener(this.$ggbLabel, () =>
+        this.$fireUpdateEvents()
+      );
+    },
+    slots: {
+      tp$new(args, kwargs) {
+        const badArgsError = new Sk.builtin.TypeError(
+          "Rotate() arguments must be (object, angle), " +
+            "(object, angle, rotation_center_point), or " +
+            "(label, object, angle, rotation_center_point)"
+        );
+
+        const make = (spec: SkGgbRotateCtorSpec) =>
+          withPropertiesFromNameValuePairs(new mod.Rotate(spec), kwargs);
+
+        switch (args.length) {
+          case 2: {
+            // Rotate(object, angle)
+            if (ggb.isGgbObject(args[0]) && ggb.isPythonOrGgbNumber(args[1])) {
+              const angle = ggb.getValue(ggb.numberValueOrLabel(args[1]));
+              return make({ kind: "basic", object: args[0], angle });
+            }
+            throw badArgsError;
+          }
+          case 3: {
+            // Rotate(object, angle, rotation_center_point)
+            if (
+              ggb.isGgbObject(args[0]) &&
+              ggb.isPythonOrGgbNumber(args[1]) &&
+              ggb.isGgbObjectOfType(args[2], "point")
+            ) {
+              const angle = ggb.getValue(ggb.numberValueOrLabel(args[1]));
+              return make({
+                kind: "center",
+                object: args[0],
+                angle,
+                rotationCenter: args[2],
+              });
+            }
+            throw badArgsError;
+          }
+          case 4: {
+            // Rotate(label, object, angle, rotation_center_point)
+            if (
+              Sk.builtin.checkString(args[0]) &&
+              ggb.isGgbObject(args[1]) &&
+              ggb.isPythonOrGgbNumber(args[2]) &&
+              ggb.isGgbObjectOfType(args[3], "point")
+            ) {
+              const label = args[0].v;
+              const angle = ggb.getValue(ggb.numberValueOrLabel(args[2]));
+              return make({
+                kind: "labeled-center",
+                label,
+                object: args[1],
+                angle,
+                rotationCenter: args[3],
+              });
+            }
+            throw badArgsError;
+          }
+          default:
+            throw badArgsError;
+        }
+      },
+      ...ggb.sharedOpSlots,
+    },
+    methods: {
+      when_moved: {
+        $meth(this: SkGgbRotate, pyFun: any) {
+          this.$updateHandlers.push(pyFun);
+          return pyFun;
+        },
+        $flags: { OneArg: true },
+      },
+      ...ggb.withPropertiesMethodsSlice,
+      ...ggb.freeCopyMethodsSlice,
+      ...ggb.deleteMethodsSlice,
+    },
+    getsets: {
+      is_visible: ggb.sharedGetSets.is_visible,
+      with_label: ggb.sharedGetSets.label_visible,
+      is_independent: ggb.sharedGetSets.is_independent,
+      color: ggb.sharedGetSets.color,
+      color_floats: ggb.sharedGetSets.color_floats,
+      size: ggb.sharedGetSets.size,
+      _ggb_type: ggb.sharedGetSets._ggb_type,
+    },
   });
 
-
-  mod.Rotate = fun;
+  mod.Rotate = cls;
+  registerObjectType("rotate", cls);
 };
