@@ -137,7 +137,7 @@ export const register = (
     slots: {
       tp$new(args, kwargs) {
         const badArgsError = new Sk.builtin.TypeError(
-          "Point() arguments must be" +
+          "Point() arguments must be" + 
             " (x_coord, y_coord) or (object, parameter)"
         );
 

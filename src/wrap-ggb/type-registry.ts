@@ -26,6 +26,13 @@ export const wrapExistingGgbObject = (
   objectLabel: string // this is the label(e.g. 'E') of the Geogebra Object that you want to wrap
 ): SkGgbObject => {   // return a value of type SkGgbObject
   const objectType = ggbApi.getObjectType(objectLabel); // An internal command from ggbApi, retrieves the Object type given the objectLabel
+  // Debugging: Log the object type
+  // console.log(`Object Type for ${objectLabel}: ${objectType}`);
+
+  // Debugging: Log the registry contents
+  // console.log(Array.from(registry.entries()));
+  // console.log("Registered 'function':", registry.get("function"));
+
   const maybeCls = registry.get(objectType);            // get the appropoiate wrapper class(maybeCls) for the Object type, e.g. If Object type = point, their corresponding wrapper class will be Skpoint
   if (maybeCls == null)                                 // registry does not have a wrapper class for Object type null
     throw new Sk.builtin.RuntimeError(

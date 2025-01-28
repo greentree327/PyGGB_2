@@ -35,7 +35,7 @@ import { register as registerParabola } from "./wrappings/parabola";
 import { register as registerPolygon } from "./wrappings/polygon";
 import { register as registerSlider } from "./wrappings/slider";
 import { register as registerRotate } from "./wrappings/rotate";
-import { register as registerFunction } from "./wrappings/function";
+import { register as registerFunction } from "./wrappings/function"; //
 import { register as registerIf } from "./wrappings/if";
 import { register as registerDistance } from "./wrappings/distance";
 import { register as registerIntersect } from "./wrappings/intersect";
@@ -47,7 +47,7 @@ import { register as registerClearConsole } from "./app-ui/clear-console";
 import { register as registerOnTemperatureReport } from "./web-hid/on-temperature-report";
 
 import { register as registerInterruptibleSleep } from "./interruptible-sleep";
-
+import { register as registerMathOperations } from "./wrappings/mathoperations"; //
 import { register as registerGetBase64 } from "./getBase64";
 
 import { SkulptApi } from "../shared/vendor-types/skulptapi";
@@ -104,7 +104,7 @@ declare var Sk: SkulptApi;
   registerPolygon(mod, appApi);
   registerSlider(mod, appApi);
   registerRotate(mod, appApi);
-  registerFunction(mod, appApi);
+  registerFunction(mod, appApi); //
   registerIf(mod, appApi);
   registerDistance(mod, appApi);
   registerIntersect(mod, appApi);
@@ -116,7 +116,7 @@ declare var Sk: SkulptApi;
   registerOnTemperatureReport(mod, appApi);
 
   registerInterruptibleSleep(mod, appApi);
-
+  registerMathOperations(mod, appApi); //
   registerGetBase64(mod, appApi);
 
   return mod;
