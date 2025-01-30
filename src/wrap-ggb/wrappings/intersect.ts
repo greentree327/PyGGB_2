@@ -13,6 +13,7 @@ import { registerObjectType } from "../type-registry";
 declare var Sk: SkulptApi;
 
 interface SkGgbIntersect extends SkGgbObject {
+  ggbLabels: string[];
   object1: SkGgbObject;
   object2: SkGgbObject;
   index?: number;
@@ -75,10 +76,12 @@ export const register = (
           ggbCmd = `Intersect(${spec.object1.$ggbLabel}, ${spec.object2.$ggbLabel}, ${spec.point.$ggbLabel})`; 
           break;
         }
+        /*
         case "range": {
           ggbCmd = `Intersect(${spec.object1.$ggbLabel}, ${spec.object2.$ggbLabel}, ${spec.x1},${spec.x2})`; 
           break;
         }
+          */
         case "labeled-basic": {
           this.$ggbLabel = spec.label;
           ggbCmd = `${spec.label} = Intersect(${spec.object1.$ggbLabel}, ${spec.object2.$ggbLabel})`;
@@ -92,18 +95,13 @@ export const register = (
       // Set the label, allowing null results
       setLabelCmd(ggbCmd, { allowNullLabel: true }); // We can now call the returned setLabelCmd function with its own parameters: (fullCommand, ?userOptions)
       
-      // Register update handlers
-      this.$updateHandlers = []; // Initialize the update handlers array
-      ggb.registerObjectUpdateListener(this.$ggbLabel, () =>
-        this.$fireUpdateEvents()
-      );
+      
 
       // Evaluate the command and filter the results
-      const label = ggb.evalCmdMultiple(ggbCmd);
-      const filteredLabel = label.filter(item => item !== null && item !== 'null'); // filter null
-      
+      const label:string[] = ggb.evalCmdMultiple(ggbCmd);
+      const filteredLabel: string[] = label.filter(item => item !== null && item !== 'null'); // filter null
       // filter Intersection point with (Nan,NaN)
-      const filteredPoints = filteredLabel.filter((filteredLabel) => { // First iterate through each item in filteredLabel
+      const filteredPoints: string[] = filteredLabel.filter((filteredLabel) => { // First iterate through each item in filteredLabel
         const xCoord = ggb.getXcoord(filteredLabel); // for each item, get the X-coord
         return !isNaN(xCoord) ;  // if X-coord = NaN, isNaN(xCoord) returns true, so !isNaN(xCoord) return false, so we do not include this item
       });
@@ -113,26 +111,31 @@ export const register = (
         const message = `No/Infinite intersection points found`
         return new Sk.builtin.str(message);
       }
-      // Wrap and return the filtered points as a Python string
-      if (Array.isArray(filteredPoints)) { // if the result is an array
-        const result =  filteredPoints.map((item) => ggb.wrapExistingGgbObject(item)); // ok
-        return new Sk.builtin.str(result.join(", ")) // ok
-      } 
-      else if (typeof filteredPoints === "string") {
-        return ggb.wrapExistingGgbObject(filteredPoints); // Return as a Python-compatible string
-      } 
+      else if (filteredPoints.length === 1) {
+        this.$ggbLabel = filteredPoints[0];
+      }
+      else if (filteredPoints.length >= 2) {
+        this.$ggbLabel = filteredPoints[0];
+        // const result =  filteredPoints.map((item) => ggb.wrapExistingGgbObject(item)); // ok
+        // return new Sk.builtin.str(result.join(", ")) // ok
+      }
       else {
         throw new Error(`Unexpected return type: ${typeof filteredPoints}`);
       } 
       
+
+      // Register update handlers
+      this.$updateHandlers = []; // Initialize the update handlers array
+      ggb.registerObjectUpdateListener(this.$ggbLabel, () =>
+        this.$fireUpdateEvents()
+      );
     },
     slots: {
       tp$new(args, kwargs) {
-        const badArgsError = new Sk.builtin.TypeError(
+        const badArgsError = new Sk.builtin.TypeError( // remove "(object1, object2, x1, x2)"
           "Intersect() arguments must be (object1, object2), " +
             "(object1, object2, index), " +
-            "(object1, object2, point)"  +
-            "(object1, object2, x1, x2), or " +
+            "(object1, object2, point), or" +
             "(label, object1, object2)"
         );
 
@@ -175,6 +178,7 @@ export const register = (
             }
             throw badArgsError;
           }
+          /*
           case 4: {
             if (
               ggb.isGgbObject(args[0]) &&
@@ -182,10 +186,13 @@ export const register = (
               ggb.isPythonOrGgbNumber(args[2]) &&
               ggb.isPythonOrGgbNumber(args[3])
             ) {
-              // const x1 = parseFloat(eval(ggb.numberValueOrLabel(args[2]).replace(/\*10\^\(\+?(-?\d+)\)/g, "* Math.pow(10, $1)")));
-              // const x2 = parseFloat(eval(ggb.numberValueOrLabel(args[3]).replace(/\*10\^\(\+?(-?\d+)\)/g, "* Math.pow(10, $1)")));
-              const start_x = ggb.numberValueOrLabel(args[2])
-              const end_x = ggb.numberValueOrLabel(args[3])
+              const x1 = parseFloat(eval(ggb.numberValueOrLabel(args[2]).replace(/\*10\^\(\+?(-?\d+)\)/g, "* Math.pow(10, $1)")));
+              const x2 = parseFloat(eval(ggb.numberValueOrLabel(args[3]).replace(/\*10\^\(\+?(-?\d+)\)/g, "* Math.pow(10, $1)")));
+              
+              const start_x = String(x1)
+              const end_x = String(x2)
+              
+              
               return make({
                 kind: "range",
                 object1: args[0],
@@ -193,9 +200,11 @@ export const register = (
                 x1:start_x,
                 x2:end_x,
               });
+              
             }
             throw badArgsError;
           }
+            */
           default:
             throw badArgsError;
         }

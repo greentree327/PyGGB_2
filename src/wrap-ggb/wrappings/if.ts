@@ -14,7 +14,7 @@ export const register = (mod: any, appApi: AppApi) => {
       throw new Sk.builtin.TypeError("all args must be GGB objects");
     }
 
-    const ggbArgs = args.map((obj) => obj.$ggbLabel).join(",");
+    const ggbArgs = args.map((obj) => obj.$ggbLabel).join(","); // iterates through each object in args, map each object to its $ggbLabel, return a new array of $ggbLabels, combine the array of labels into string
     const ggbCmd = `If(${ggbArgs})`;
     const label = ggb.evalCmd(ggbCmd);
     return ggb.wrapExistingGgbObject(label);

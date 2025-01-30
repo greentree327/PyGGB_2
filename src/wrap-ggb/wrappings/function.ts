@@ -51,7 +51,6 @@ export const register = (
   appApi: AppApi
 ) => {
   const ggb = augmentedGgbApi(appApi.ggb);
-  const skApi = appApi.sk;
 
   const cls = Sk.abstr.buildNativeClass("Function", {
     constructor: function Function(this: SkGgbFunction, spec: SkGgbFunctionCtorSpec) {

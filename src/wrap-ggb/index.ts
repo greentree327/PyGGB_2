@@ -41,7 +41,7 @@ import { register as registerDistance } from "./wrappings/distance";
 import { register as registerIntersect } from "./wrappings/intersect";
 import { register as registerZoom } from "./wrappings/zoom";
 import { register as registerNumberOfObjects } from "./wrappings/number-of-objects";
-
+import { register as registerPointIn } from "./wrappings/pointin"; //
 import { register as registerClearConsole } from "./app-ui/clear-console";
 
 import { register as registerOnTemperatureReport } from "./web-hid/on-temperature-report";
@@ -110,6 +110,7 @@ declare var Sk: SkulptApi;
   registerIntersect(mod, appApi);
   registerZoom(mod, appApi);
   registerNumberOfObjects(mod, appApi);
+  registerPointIn(mod, appApi); //
 
   registerClearConsole(mod, appApi);
 

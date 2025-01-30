@@ -18,7 +18,10 @@ export const register = (mod: any, appApi: AppApi) => {
     const lbl = ggb.evalCmd(ggbCmd);
     const distanceValue = ggb.getValue(lbl);
     ggb.deleteObject(lbl);
-    return new Sk.builtin.float_(distanceValue);
+    // Convert angle to degrees and limit precision
+    const angleInDegrees = Number((distanceValue).toPrecision(10));
+    // Return the precise angle
+    return new Sk.builtin.float_(angleInDegrees);
   });
 
   mod.Distance = fun;

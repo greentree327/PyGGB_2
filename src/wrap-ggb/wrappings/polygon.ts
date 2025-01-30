@@ -88,10 +88,12 @@ export const register = (mod: any, appApi: AppApi) => {
 
         switch (args.length) {
           case 1: {
-            if (Sk.builtin.checkIterable(args[0])) {
+            if (Sk.builtin.checkIterable(args[0])) { // check if the single argument is an iterable object (e.g. list,array)
               const points = Sk.misceval.arrayFromIterable(args[0]);
-
-              if (ggb.everyElementIsGgbObject(points)) {
+              
+              
+              if (ggb.everyElementIsGgbObjectOfType(points, "point")) {
+                
                 return make({ kind: "points-array", points });
               }
             }
