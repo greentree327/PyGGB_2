@@ -1,10 +1,16 @@
 # Python-driven GeoGebra
 
-A webapp to allow people to interact with GeoGebra via Python. We envision this project as the first step towards building an AI agent capable of solving geometric problems.
+A webapp to allow people to interact with GeoGebra via Python.
 
+## Vision
+We aim to bridge the gap between Python programming and geometric visualization, working towards building an AI agent capable of solving geometric problems. This project represents the first step in that direction.
+
+## About
 This project is forked from [bennorth/pyggb](https://github.com/bennorth/pyggb). We have been working closely with the original author and Professor Lingpeng Kong from The University of Hong Kong (HKU) to extend its capabilities.
 
-[See it in action here.](https://www.geogebra.org/python/)
+## Try it out
+- Original webapp: [See it in action here](https://www.geogebra.org/python/)
+- For webapp with latest updates: Clone this project and read `developing-README.md` to deploy it on your local machine
 
 # Updates
 1. added angle.ts
